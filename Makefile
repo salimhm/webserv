@@ -8,16 +8,18 @@ OBJS		=	$(SRCS:.cpp=.o)
 
 NAME		=	webserv
 
-%.o:	%.cpp *.hpp
-		$(CC) $(CPPFLAGS) -c $< -o $@
+%.o:		%.cpp *.hpp
+			$(CC) $(CPPFLAGS) -c $< -o $@
 
-all:	$(OBJS)
-		$(CC) $(OBJS) $(CPPFLAGS) -o $(NAME)
+all:		$(NAME)
+
+$(NAME):	$(OBJS)
+			$(CC) $(OBJS) $(CPPFLAGS) -o $(NAME)
 
 clean:
-		rm -f $(OBJS)
+			rm -f $(OBJS)
 
-fclean:	clean
-		rm $(NAME)
+fclean:		clean
+			rm $(NAME)
 
-re:		fclean all
+re:			fclean all
