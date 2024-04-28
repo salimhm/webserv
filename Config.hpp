@@ -1,26 +1,27 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   Client.hpp                                         :+:      :+:    :+:   */
+/*   Config.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: shmimi <shmimi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/03/31 02:36:33 by shmimi            #+#    #+#             */
-/*   Updated: 2024/04/28 05:58:42 by shmimi           ###   ########.fr       */
+/*   Created: 2024/04/23 22:15:53 by shmimi            #+#    #+#             */
+/*   Updated: 2024/04/23 23:43:22 by shmimi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Server.hpp"
 
-class Client
+class Config
 {
-    private:
-        
     public:
-        int clientFd;
         int port;
-        
-        /********** Getters *************/
-        int getPort() const;
-        
+        std::string serverName;
+        std::string root;
+        std::vector<std::string> index;
+
+        std::vector<int> getPort();
+        std::string getServerName();
+        std::string getRoot();
+        // std::vector<std::string> getIndex();
 };
