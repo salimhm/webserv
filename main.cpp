@@ -6,7 +6,7 @@
 /*   By: shmimi <shmimi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/21 15:10:14 by shmimi            #+#    #+#             */
-/*   Updated: 2024/04/28 05:53:05 by shmimi           ###   ########.fr       */
+/*   Updated: 2024/04/28 07:36:57 by shmimi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,6 +29,32 @@ std::vector<Server> setupServer(Config config)
     return servers;
 }
 
+std::vector<std::string> parseRequest(std::string request)
+{
+    std::vector<std::string> newRequest;
+    
+    std::string method;
+    std::string path;
+    std::string version;
+    
+    int pos1 = request.find(' ') + 1;
+    int pos2 = request.find(' ', pos1) + 1;
+    int pos3 = request.find('\n', pos2);
+    
+    method = request.substr(0, pos1 - 1);
+    path = request.substr(pos1, pos2 - pos1 - 1);
+    version = request.substr(pos2, pos3 - pos2 - 1);
+
+    newRequest.push_back(method);
+    newRequest.push_back(path);
+    newRequest.push_back(version);
+    // for (size_t i = 0; i < newRequest.size(); i++)
+    // {
+    //     std::cout << newRequest[i] << " " << newRequest[i].size() << std::endl;
+    // }
+    return newRequest;
+}
+
 int main(int ac, char **av)
 {
     (void)av;
@@ -48,6 +74,8 @@ int main(int ac, char **av)
     else
     {
         std::vector<Server> servers = setupServer(config);
+        
+        std::vector<Client> clients;
 
         int conn = 0;
         while (1)
@@ -73,20 +101,21 @@ int main(int ac, char **av)
                                 exit(1);
                             }
                             conn++;
-                            std::cout << "New connection " << conn << std::endl;
+                            std::cout << "New connection " << conn << std::endl << std::endl << std::endl;
                             char buffer[10] = {0};
                             int data = recv(new_socket, buffer, sizeof(buffer), 0);
                             buffer[data] = '\0';
-                            std::string str(buffer); // Convert char* to string
+                            std::string request(buffer); // Convert char* to string
                             while (data > 0)
                             {
                                 if (data != sizeof(buffer))
                                     break;
                                 data = recv(new_socket, buffer, sizeof(buffer), 0);
                                 buffer[data] = '\0';
-                                str += buffer;
+                                request += buffer;
                             }
-                            std::cout << str << std::endl;
+                            Client client(servers[j].getPort(), new_socket, parseRequest(request));
+                            clients.push_back(client);
                             servers[j].addClient(new_socket);
                             std::string response = "HTTP/1.1 200 OK\nContent-Type: text/html\nContent-Length: 23\n\n<h1>Hello world!!!</h1>";
                             // if (new_socket == servers[j].getSockfd()) // Protection against if the server socket is the client socket (can't send to itself)
