@@ -6,13 +6,14 @@
 /*   By: shmimi <shmimi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/21 15:10:14 by shmimi            #+#    #+#             */
-/*   Updated: 2024/04/28 07:36:57 by shmimi           ###   ########.fr       */
+/*   Updated: 2024/04/29 17:55:49 by shmimi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Server.hpp"
 #include "Config.hpp"
 #include "Client.hpp"
+#include "utils.hpp"
 
 std::vector<Server> setupServer(Config config)
 {
@@ -29,30 +30,59 @@ std::vector<Server> setupServer(Config config)
     return servers;
 }
 
-std::vector<std::string> parseRequest(std::string request)
+struct Request parseRequest(const std::string &request)
 {
-    std::vector<std::string> newRequest;
-    
+    struct Request httpRequest;
+
     std::string method;
     std::string path;
     std::string version;
-    
+    std::string body;
+
+    std::string header;
+
     int pos1 = request.find(' ') + 1;
     int pos2 = request.find(' ', pos1) + 1;
     int pos3 = request.find('\n', pos2);
-    
+    int crlf = request.find("\r\n\r\n");
+
     method = request.substr(0, pos1 - 1);
     path = request.substr(pos1, pos2 - pos1 - 1);
     version = request.substr(pos2, pos3 - pos2 - 1);
+    body = request.substr(crlf + 4);
 
-    newRequest.push_back(method);
-    newRequest.push_back(path);
-    newRequest.push_back(version);
-    // for (size_t i = 0; i < newRequest.size(); i++)
-    // {
-    //     std::cout << newRequest[i] << " " << newRequest[i].size() << std::endl;
-    // }
-    return newRequest;
+    header = request.substr(request.find("\r\n") + 2, crlf - body.size());
+
+    std::vector<std::string> splittedHeader;
+    std::vector<std::string> splittedHeader2;
+    splittedHeader = split(header, "\r\n");
+
+    for (size_t i = 0; i < splittedHeader.size(); i++)
+    {
+        splittedHeader2 = split(splittedHeader[i], ": ");
+        if (splittedHeader2[0].size() > 0)
+            httpRequest.headers[splittedHeader2[0]] = splittedHeader2[1];
+    }
+
+    std::cout << "************Printing headers *************\n";
+    std::map<std::string, std::string>::iterator it = httpRequest.headers.begin();
+    while (it != httpRequest.headers.end())
+    {
+        std::cout << it->first << "=>" << it->second << std::endl;
+        it++;
+    }
+    std::cout << "************ END headers *************\n";
+
+    httpRequest.startLine.push_back(method);
+    httpRequest.startLine.push_back(path);
+    httpRequest.startLine.push_back(version);
+    if (body.size() > 0)
+        httpRequest.startLine.push_back(body);
+    for (size_t i = 0; i < httpRequest.startLine.size(); i++)
+    {
+        std::cout << httpRequest.startLine[i] << " " << httpRequest.startLine[i].size() << std::endl;
+    }
+    return httpRequest;
 }
 
 int main(int ac, char **av)
@@ -74,7 +104,7 @@ int main(int ac, char **av)
     else
     {
         std::vector<Server> servers = setupServer(config);
-        
+
         std::vector<Client> clients;
 
         int conn = 0;
@@ -94,34 +124,35 @@ int main(int ac, char **av)
                     {
                         if (servers[j].getClientSockets()[i].revents & POLLIN) // If there is a new connection
                         {
-                            int new_socket = accept(servers[j].getSockfd(), (struct sockaddr *)&servers[j].getAddr(), (socklen_t *)&servers[j].getAddrlen());
-                            if (new_socket < 0)
+                            int clientSocket = accept(servers[j].getSockfd(), (struct sockaddr *)&servers[j].getAddr(), (socklen_t *)&servers[j].getAddrlen());
+                            if (clientSocket < 0)
                             {
                                 perror("accept");
                                 exit(1);
                             }
                             conn++;
-                            std::cout << "New connection " << conn << std::endl << std::endl << std::endl;
-                            char buffer[10] = {0};
-                            int data = recv(new_socket, buffer, sizeof(buffer), 0);
+                            std::cout << "New connection " << conn << std::endl
+                                      << std::endl
+                                      << std::endl;
+                            char buffer[512] = {0};
+                            int data = recv(clientSocket, buffer, sizeof(buffer), 0);
                             buffer[data] = '\0';
                             std::string request(buffer); // Convert char* to string
                             while (data > 0)
                             {
                                 if (data != sizeof(buffer))
                                     break;
-                                data = recv(new_socket, buffer, sizeof(buffer), 0);
+                                data = recv(clientSocket, buffer, sizeof(buffer), 0);
                                 buffer[data] = '\0';
                                 request += buffer;
                             }
-                            Client client(servers[j].getPort(), new_socket, parseRequest(request));
+                            // std::cout << request << std::endl;
+                            Client client(servers[j].getPort(), clientSocket, parseRequest(request));
                             clients.push_back(client);
-                            servers[j].addClient(new_socket);
+                            servers[j].addClient(clientSocket);
                             std::string response = "HTTP/1.1 200 OK\nContent-Type: text/html\nContent-Length: 23\n\n<h1>Hello world!!!</h1>";
-                            // if (new_socket == servers[j].getSockfd()) // Protection against if the server socket is the client socket (can't send to itself)
-                            //     continue;
-                            send(new_socket, response.c_str(), response.size(), 0);
-                            close(new_socket);
+                            send(clientSocket, response.c_str(), response.size(), 0);
+                            close(clientSocket);
                         }
                     }
                 }
