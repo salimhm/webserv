@@ -6,7 +6,7 @@
 /*   By: shmimi <shmimi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/21 15:10:14 by shmimi            #+#    #+#             */
-/*   Updated: 2024/04/29 17:55:49 by shmimi           ###   ########.fr       */
+/*   Updated: 2024/04/30 08:05:00 by shmimi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,7 +39,7 @@ struct Request parseRequest(const std::string &request)
     std::string version;
     std::string body;
 
-    std::string header;
+    std::string headerString;
 
     int pos1 = request.find(' ') + 1;
     int pos2 = request.find(' ', pos1) + 1;
@@ -51,11 +51,14 @@ struct Request parseRequest(const std::string &request)
     version = request.substr(pos2, pos3 - pos2 - 1);
     body = request.substr(crlf + 4);
 
-    header = request.substr(request.find("\r\n") + 2, crlf - body.size());
+    headerString = request.substr(request.find("\r\n"), crlf - body.size() - 2);
+    std::cout << "************ Printing headers *************";
+    std::cout << headerString << std::endl;
+    std::cout << "************ END Printing headers *************\n";
 
     std::vector<std::string> splittedHeader;
     std::vector<std::string> splittedHeader2;
-    splittedHeader = split(header, "\r\n");
+    splittedHeader = split(headerString, "\r\n");
 
     for (size_t i = 0; i < splittedHeader.size(); i++)
     {
@@ -64,7 +67,18 @@ struct Request parseRequest(const std::string &request)
             httpRequest.headers[splittedHeader2[0]] = splittedHeader2[1];
     }
 
-    std::cout << "************Printing headers *************\n";
+    httpRequest.startLine.push_back(method);
+    httpRequest.startLine.push_back(path);
+    httpRequest.startLine.push_back(version);
+    if (body.size() > 0)
+        httpRequest.body = body;
+    // std::cout << "************ Start Line *************\n";
+    // for (size_t i = 0; i < httpRequest.startLine.size(); i++)
+    // {
+    //     std::cout << httpRequest.startLine[i] << " " << httpRequest.startLine[i].size() << std::endl;
+    // }
+    // std::cout << "************ END Start Line *************\n";
+    std::cout << "************ Printing headers *************\n";
     std::map<std::string, std::string>::iterator it = httpRequest.headers.begin();
     while (it != httpRequest.headers.end())
     {
@@ -72,16 +86,9 @@ struct Request parseRequest(const std::string &request)
         it++;
     }
     std::cout << "************ END headers *************\n";
-
-    httpRequest.startLine.push_back(method);
-    httpRequest.startLine.push_back(path);
-    httpRequest.startLine.push_back(version);
-    if (body.size() > 0)
-        httpRequest.startLine.push_back(body);
-    for (size_t i = 0; i < httpRequest.startLine.size(); i++)
-    {
-        std::cout << httpRequest.startLine[i] << " " << httpRequest.startLine[i].size() << std::endl;
-    }
+    // std::cout << "************ Body *************\n";
+    // std::cout << httpRequest.body << std::endl;
+    // std::cout << "************ END Body *************\n";
     return httpRequest;
 }
 
@@ -146,7 +153,9 @@ int main(int ac, char **av)
                                 buffer[data] = '\0';
                                 request += buffer;
                             }
-                            // std::cout << request << std::endl;
+                            std::cout << "****** REQUEST ********" << std::endl;
+                            std::cout << request << std::endl;
+                            std::cout << "****** END REQUEST ********" << std::endl;
                             Client client(servers[j].getPort(), clientSocket, parseRequest(request));
                             clients.push_back(client);
                             servers[j].addClient(clientSocket);
