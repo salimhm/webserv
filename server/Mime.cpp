@@ -6,7 +6,7 @@
 /*   By: shmimi <shmimi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/01 17:31:26 by shmimi            #+#    #+#             */
-/*   Updated: 2024/05/01 22:39:08 by shmimi           ###   ########.fr       */
+/*   Updated: 2024/05/01 23:37:07 by shmimi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,20 +37,21 @@ Mime::Mime() : _file("mime.types")
                 keyVector.push_back(subKeys[counter]);
                 counter++;
             }
-            if (keys[2].size() > 0)
-                mimeMap[keyVector] = keys[2];
-            else
-                mimeMap[keyVector] = keys[1];
+            // if (keys[2].size() > 0)
+            //     mimeMap[keyVector] = keys[2];
+            // else
+            mimeMap[keyVector] = keys[1];
         }
     }
     this->_mimeMap = mimeMap;
-    std::map<std::vector<std::string>, std::string>::iterator it = mimeMap.begin();
-    while (it != mimeMap.end())
-    {
-        if (it->first[0] == ".json")
-            std::cout << it->first[0] << "==>" << it->second << std::endl;
-        it++;
-    }
+
+    // std::map<std::vector<std::string>, std::string>::iterator it = mimeMap.begin();
+    // while (it != mimeMap.end())
+    // {
+    //     if (it->first[1] == ".html")
+    //         std::cout << it->first[0] << "==>" << it->second << std::endl;
+    //     it++;
+    // }
 }
 
 const std::ifstream &Mime::getFile() const
@@ -95,6 +96,22 @@ const std::ifstream &Mime::getFile() const
 //     this->_mimeMap = mimeMap;
 //     return mimeMap;
 // }
+
+const std::string Mime::getContentType(const std::string &extension) const
+{
+    (void)extension;
+    std::map<std::vector<std::string>, std::string>::const_iterator it = this->_mimeMap.begin();
+    while (it != this->_mimeMap.end())
+    {
+        for (size_t i = 0; i < it->first[i].size(); i++)
+        {
+            if (it->first[i] == extension)
+                return it->second;
+        }
+        *it++;
+    }
+    return "";
+}
 
 const std::map<std::vector<std::string>, std::string> &Mime::getMimeMap() const
 {

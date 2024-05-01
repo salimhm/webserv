@@ -6,7 +6,7 @@
 /*   By: shmimi <shmimi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/21 15:10:14 by shmimi            #+#    #+#             */
-/*   Updated: 2024/05/01 22:31:15 by shmimi           ###   ########.fr       */
+/*   Updated: 2024/05/02 00:01:07 by shmimi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -125,7 +125,7 @@ int main(int ac, char **av)
                                 clients.push_back(client);
                                 servers[j].addClient(clientSocket);
                                 // std::string response = "HTTP/1.1 200 OK\nContent-Type: text/text\nContent-Length: 21\n\nHelloThisisfrom lolol";
-                                std::string response = handleRequest(clients[0]);
+                                std::string response = handleRequest(clients[0], mime);
                                 send(clientSocket, response.c_str(), response.size(), 0);
                                 close(clientSocket);
                                 // servers[j].getClientSockets().pop_back(); // Remove the client socket from the pollfd vector

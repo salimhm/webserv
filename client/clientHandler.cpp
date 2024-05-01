@@ -6,7 +6,7 @@
 /*   By: shmimi <shmimi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/01 02:07:06 by shmimi            #+#    #+#             */
-/*   Updated: 2024/05/01 17:23:28 by shmimi           ###   ########.fr       */
+/*   Updated: 2024/05/02 00:17:12 by shmimi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -89,7 +89,7 @@ std::string getFileExtension(const std::string &filePath)
     size_t pos = filePath.find_last_of(".");
     if (pos != std::string::npos)
     {
-        std::string extension = filePath.substr(pos + 1);
+        std::string extension = filePath.substr(pos);
         return extension;
     }
     return "";
@@ -104,7 +104,7 @@ std::string readFile(std::string filePath)
     }
     std::string line;
     std::string content;
-    while(getline(file, line))
+    while (getline(file, line))
         content += line;
     return content;
 }
@@ -112,14 +112,29 @@ std::string readFile(std::string filePath)
 std::string getResponse(Response responseObj)
 {
     std::string response;
-    //std::string response = "HTTP/1.1 200 OK\nContent-Type: text/text\nContent-Length: 21\n\nHelloThisisfrom lolol";
+    // std::string response = "HTTP/1.1 200 OK\nContent-Type: text/text\nContent-Length: 21\n\nHelloThisisfrom lolol";
 
     response += responseObj.getHttpVersion() + " " + responseObj.getStatus() + " " + responseObj.getStatusMessage() + "\n" + responseObj.getContentType() + "\n" + responseObj.getContentLength() + "\n\n" + responseObj.getBody();
     return response;
 }
 
-std::string handleRequest(Client client)
+void generateResponse(Response &response, const std::string &filePath, const std::string& contentType)
 {
+    response.setHttpVersion("HTTP/1.1");
+    response.setStatus("200");
+    response.setStatusMessage("OK");
+    response.setContentType("Content-Type: " + contentType);
+    response.setBody(readFile(filePath));
+    std::stringstream bodyLength;
+    bodyLength << response.getBody().size();
+    response.setContentLength("Content-Length: " + bodyLength.str());
+    response.setBody(readFile(filePath));
+}
+
+std::string handleRequest(Client client, const Mime &mime)
+{
+    (void)mime;
+
     client.setMethod(client.getMethod());
     client.setUri(client.getUri());
     client.setVersion(client.getVersion());
@@ -129,27 +144,22 @@ std::string handleRequest(Client client)
     std::string filePath = client.getRoot() + client.getUri();
     if (client.getMethod() == "GET")
     {
-        if (access(filePath.c_str(), F_OK) == 0)
+        // if (access(filePath.c_str(), F_OK) == 0)
         {
-            if (getFileExtension(filePath).size() == 0) //Handle files without extensions
+            if (getFileExtension(filePath).size() == 0) // Handle files without extensions
             {
-                response.setHttpVersion("HTTP/1.1");
-                response.setStatus("200");
-                response.setStatusMessage("OK");
-                response.setContentType("Content-Type: text/plain");
-                response.setBody(readFile(filePath));
-                std::stringstream bodyLength;
-                bodyLength << response.getBody().size();
-                response.setContentLength("Content-Length: " + bodyLength.str());
-                response.setBody(readFile(filePath));
-
+                generateResponse(response, filePath, "text/plain");
                 // std::cout << getResponse(response) << std::endl;
                 return getResponse(response);
             }
-            // else
-            // {
-                
-            // }
+            else
+            {
+                // std::cout << "Extension is =>" << getFileExtension(filePath) << std::endl;
+                std::string contentType = mime.getContentType(getFileExtension(filePath));
+                std::cout << "Content type is =======> " << contentType << std::endl;
+                generateResponse(response, filePath, mime.getContentType(getFileExtension(filePath)));
+                return getResponse(response);
+            }
         }
     }
     return "";
