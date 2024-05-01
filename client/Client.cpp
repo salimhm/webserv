@@ -6,7 +6,7 @@
 /*   By: shmimi <shmimi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/25 00:04:21 by shmimi            #+#    #+#             */
-/*   Updated: 2024/04/29 17:55:00 by shmimi           ###   ########.fr       */
+/*   Updated: 2024/05/01 02:07:15 by shmimi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,4 +33,39 @@ const std::vector<std::string>& Client::getRequest() const
 const std::map<std::string, std::string>& Client::getHeaders() const
 {
     return request.headers;
+}
+
+const std::string& Client::getBody() const
+{
+    return request.body;
+}
+
+const std::string& Client::getMethod() const
+{
+    return this->request.startLine[0];
+}
+
+const std::string& Client::getUri() const
+{
+    return this->request.startLine[1];
+}
+
+const std::string& Client::getVersion() const
+{
+    return this->request.startLine[2];
+}
+
+void Client::setMethod(const std::string &method)
+{
+    this->_method = method;
+}
+
+void Client::setUri(const std::string &uri)
+{
+    this->_uri = uri;
+}
+
+void Client::setVersion(const std::string &version)
+{
+    this->_version = version;
 }

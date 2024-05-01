@@ -2,7 +2,14 @@ CC			=	c++
 
 CPPFLAGS	=	-Wall -Werror -Wextra
 
-SRCS		=	main.cpp Server.cpp Config.cpp Client.cpp utils.cpp
+SRCS		=	main.cpp\
+				server/Server.cpp\
+				Config.cpp\
+				utils.cpp\
+				client/Client.cpp\
+				client/clientHandler.cpp\
+				server/Response.cpp\
+				server/Mime.cpp\
 
 OBJS		=	$(SRCS:.cpp=.o)
 

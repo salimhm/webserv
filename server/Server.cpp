@@ -6,7 +6,7 @@
 /*   By: shmimi <shmimi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/20 18:08:33 by shmimi            #+#    #+#             */
-/*   Updated: 2024/04/27 22:30:18 by shmimi           ###   ########.fr       */
+/*   Updated: 2024/04/30 13:21:17 by shmimi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,7 +33,7 @@ Server::Server(int port)
         exit(1);
     }
     if(listen(this->getSockfd(), 10) < 0){
-        perror("listen problem");
+        perror("Listen");
         exit(1);
     }
     
