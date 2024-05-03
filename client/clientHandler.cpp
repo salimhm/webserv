@@ -6,7 +6,7 @@
 /*   By: shmimi <shmimi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/01 02:07:06 by shmimi            #+#    #+#             */
-/*   Updated: 2024/05/03 23:06:45 by shmimi           ###   ########.fr       */
+/*   Updated: 2024/05/03 23:35:59 by shmimi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -151,17 +151,12 @@ std::string generateAutoIndex(const std::string &filePath, const Config &config)
     while (entry != NULL)
     {
         std::string str(entry->d_name);
-        // if (str == ".")
-        // {
-        //     entry = readdir(dir);
-        //     continue;
-        // }
         std::string href = filePath.substr(config.getRoot().size());
         if (href[href.size() - 1] != '/')
             href += "/";
         href += str;
         autoIndex += "<pre><li><a href=\"" + href + "\">" + str + "</a></li></pre>";
-        std::cout << "filePath => " << href << std::endl;
+        // std::cout << "filePath => " << href << std::endl;
         entry = readdir(dir);
     }
     autoIndex += "</ul></body></html>";
@@ -207,22 +202,20 @@ std::string handleRequest(Client client, const Config &config)
                 }
                 else
                 {
-                    if (config.getIndex()[config.getIndex().size() - 1][0] == '=')
-                    {
-                        int statusCode;
-                        std::istringstream(config.getIndex()[config.getIndex().size() - 1].substr(1)) >> statusCode;
-                        if (statusCode == NOT_FOUND)
-                        {
-                            generateResponse(response, "./html/404.html", "text/html", "404", "Not Found", 0);
-                            return getResponse(response);
-                        }
-                    }
+                    generateResponse(response, "./src/html/403.html", "text/html", "403", "Forbidden", 0);
+                    return getResponse(response);
                 }
             }
+            else // Handle files
+            {
+                std::cout << "Here==>" << getFileExtension(filePath) << "=>" << config.getContentType(getFileExtension(filePath)) << std::endl;
+                generateResponse(response, filePath, config.getContentType(getFileExtension(filePath)), "200", "OK", 0);
+                return getResponse(response);
+            }
         }
-        else
+        else // File/Directory doesn't exist
         {
-            generateResponse(response, "./html/404.html", "text/html", "404", "Not Found", 0);
+            generateResponse(response, "./src/html/404.html", "text/html", "404", "Not Found", 0);
             return getResponse(response);
         }
     }
