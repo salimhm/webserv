@@ -6,7 +6,7 @@
 /*   By: shmimi <shmimi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/01 17:31:26 by shmimi            #+#    #+#             */
-/*   Updated: 2024/05/01 23:37:07 by shmimi           ###   ########.fr       */
+/*   Updated: 2024/05/03 22:39:26 by shmimi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,10 +37,8 @@ Mime::Mime() : _file("mime.types")
                 keyVector.push_back(subKeys[counter]);
                 counter++;
             }
-            // if (keys[2].size() > 0)
-            //     mimeMap[keyVector] = keys[2];
-            // else
             mimeMap[keyVector] = keys[1];
+            break;
         }
     }
     this->_mimeMap = mimeMap;
@@ -99,14 +97,16 @@ const std::ifstream &Mime::getFile() const
 
 const std::string Mime::getContentType(const std::string &extension) const
 {
-    (void)extension;
     std::map<std::vector<std::string>, std::string>::const_iterator it = this->_mimeMap.begin();
     while (it != this->_mimeMap.end())
     {
-        for (size_t i = 0; i < it->first[i].size(); i++)
+        for (size_t i = 0; i < it->first.size(); i++)
         {
             if (it->first[i] == extension)
+            {
+                std::cout << it->second << std::endl;
                 return it->second;
+            }
         }
         *it++;
     }

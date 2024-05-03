@@ -40,7 +40,6 @@
 .prf|application/pics-rules
 .p10|application/pkcs10
 .p7c, .p7m|application/x-pkcs7-certreqresp|application/pkcs7-mime
-application/x-pkcs7-certificates
 .p7s|application/pkcs7-signature
 .cer|application/pkix-cert
 .crl|application/pkix-crl

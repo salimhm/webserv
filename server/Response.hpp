@@ -6,7 +6,7 @@
 /*   By: shmimi <shmimi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/01 13:24:47 by shmimi            #+#    #+#             */
-/*   Updated: 2024/05/01 16:42:08 by shmimi           ###   ########.fr       */
+/*   Updated: 2024/05/03 15:59:58 by shmimi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,6 +14,25 @@
 
 #include "Server.hpp"
 #include "../client/Client.hpp"
+
+enum StatusCode
+{
+    OK = 200,
+    CREATED = 201,
+    ACCEPTED = 202,
+    MOVED_PERMANENTLY = 301,
+    FOUND = 302,
+    BAD_REQUEST = 400,
+    FORBIDDEN = 403,
+    NOT_FOUND = 404,
+    METHOD_NOT_ALLOWED = 405,
+    REQUEST_TIMEOUT = 408,
+    PAYLOAD_TOO_LARGE = 413,
+    URI_TOO_LONG = 414,
+    INTERNAL_SERVER_ERROR = 500,
+    NOT_IMPLEMENTED = 501,
+    BAD_GATEWAY = 502,
+};
 
 class Response
 {
@@ -27,7 +46,6 @@ class Response
         std::string _contentLength;
 
     public:
-
         /********** Getters **********/
         const std::string& getHttpVersion() const;
         const std::string& getStatus() const;

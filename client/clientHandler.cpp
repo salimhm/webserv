@@ -6,7 +6,7 @@
 /*   By: shmimi <shmimi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/01 02:07:06 by shmimi            #+#    #+#             */
-/*   Updated: 2024/05/02 00:17:12 by shmimi           ###   ########.fr       */
+/*   Updated: 2024/05/03 23:06:45 by shmimi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -118,22 +118,59 @@ std::string getResponse(Response responseObj)
     return response;
 }
 
-void generateResponse(Response &response, const std::string &filePath, const std::string& contentType)
+void generateResponse(Response &response, const std::string &filePath, const std::string &contentType, const std::string &status, const std::string &statusMessage, int autoIndexFlag)
 {
     response.setHttpVersion("HTTP/1.1");
-    response.setStatus("200");
-    response.setStatusMessage("OK");
+    response.setStatus(status);
+    response.setStatusMessage(statusMessage);
     response.setContentType("Content-Type: " + contentType);
-    response.setBody(readFile(filePath));
+    if (autoIndexFlag)
+        response.setBody(filePath);
+    else
+        response.setBody(readFile(filePath));
     std::stringstream bodyLength;
     bodyLength << response.getBody().size();
     response.setContentLength("Content-Length: " + bodyLength.str());
-    response.setBody(readFile(filePath));
 }
 
-std::string handleRequest(Client client, const Mime &mime)
+std::string generateAutoIndex(const std::string &filePath, const Config &config)
 {
-    (void)mime;
+    DIR *dir;
+    struct dirent *entry;
+    dir = opendir(filePath.c_str());
+    if (dir == NULL)
+    {
+        std::cout << "Directory is =>" << filePath << std::endl;
+        std::cerr << "Error opening directory" << std::endl;
+        return "";
+    }
+    entry = readdir(dir);
+    std::cout << "First => " << entry->d_name << std::endl;
+    std::string title = filePath.substr(config.getRoot().size());
+    std::string autoIndex = "<html><head><title>Index of " + title + "</title></head><body><h1>Index of " + title + "</h1><hr><ul>";
+    while (entry != NULL)
+    {
+        std::string str(entry->d_name);
+        // if (str == ".")
+        // {
+        //     entry = readdir(dir);
+        //     continue;
+        // }
+        std::string href = filePath.substr(config.getRoot().size());
+        if (href[href.size() - 1] != '/')
+            href += "/";
+        href += str;
+        autoIndex += "<pre><li><a href=\"" + href + "\">" + str + "</a></li></pre>";
+        std::cout << "filePath => " << href << std::endl;
+        entry = readdir(dir);
+    }
+    autoIndex += "</ul></body></html>";
+    return autoIndex;
+}
+
+std::string handleRequest(Client client, const Config &config)
+{
+    (void)config;
 
     client.setMethod(client.getMethod());
     client.setUri(client.getUri());
@@ -144,22 +181,49 @@ std::string handleRequest(Client client, const Mime &mime)
     std::string filePath = client.getRoot() + client.getUri();
     if (client.getMethod() == "GET")
     {
-        // if (access(filePath.c_str(), F_OK) == 0)
+        struct stat fileStat;
+        if (stat(filePath.c_str(), &fileStat) == 0) // Check if file exists
         {
-            if (getFileExtension(filePath).size() == 0) // Handle files without extensions
+            if (S_ISDIR(fileStat.st_mode)) // Handle directories
             {
-                generateResponse(response, filePath, "text/plain");
-                // std::cout << getResponse(response) << std::endl;
-                return getResponse(response);
+                std::string filePathCpy = filePath;
+                for (size_t i = 0; i < config.getIndex().size(); i++)
+                {
+                    filePathCpy = client.getRoot() + client.getUri() + "/" + config.getIndex()[i];
+                    if (access(filePathCpy.c_str(), F_OK) == 0) // File exists, serve it
+                    {
+                        std::cout << filePathCpy << std::endl;
+                        std::cout << "Here==>" << getFileExtension(filePathCpy) << "=>" << config.getContentType(getFileExtension(filePathCpy)) << std::endl;
+                        generateResponse(response, filePathCpy, config.getContentType(getFileExtension(filePathCpy)), "200", "OK", 0);
+                        return getResponse(response);
+                    }
+                }
+                if (config.getAutoIndex() == "on")
+                {
+                    std::cout << "here lol ==========> " << filePath << "<==========" << std::endl;
+                    std::string autoIndex = generateAutoIndex(filePath, config);
+                    generateResponse(response, autoIndex, "text/html", "200", "OK", 1);
+                    return getResponse(response);
+                }
+                else
+                {
+                    if (config.getIndex()[config.getIndex().size() - 1][0] == '=')
+                    {
+                        int statusCode;
+                        std::istringstream(config.getIndex()[config.getIndex().size() - 1].substr(1)) >> statusCode;
+                        if (statusCode == NOT_FOUND)
+                        {
+                            generateResponse(response, "./html/404.html", "text/html", "404", "Not Found", 0);
+                            return getResponse(response);
+                        }
+                    }
+                }
             }
-            else
-            {
-                // std::cout << "Extension is =>" << getFileExtension(filePath) << std::endl;
-                std::string contentType = mime.getContentType(getFileExtension(filePath));
-                std::cout << "Content type is =======> " << contentType << std::endl;
-                generateResponse(response, filePath, mime.getContentType(getFileExtension(filePath)));
-                return getResponse(response);
-            }
+        }
+        else
+        {
+            generateResponse(response, "./html/404.html", "text/html", "404", "Not Found", 0);
+            return getResponse(response);
         }
     }
     return "";

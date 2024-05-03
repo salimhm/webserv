@@ -6,7 +6,7 @@
 /*   By: shmimi <shmimi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/21 15:10:14 by shmimi            #+#    #+#             */
-/*   Updated: 2024/05/02 00:01:07 by shmimi           ###   ########.fr       */
+/*   Updated: 2024/05/03 22:53:49 by shmimi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,7 +40,9 @@ int main(int ac, char **av)
     std::ifstream file("webserv.conf");
     Config config;
 
-    Mime mime;
+    // config.getContentType(".html");
+
+    // Mime mime;
     // mime.getExtension();
 
     // std::map<std::vector<std::string>, std::string> mimeMap;
@@ -106,18 +108,18 @@ int main(int ac, char **av)
                                 std::cout << "New connection " << conn << std::endl
                                           << std::endl
                                           << std::endl;
-                                char buffer[512] = {0};
+                                char buffer[1024] = {0};
                                 int data = recv(clientSocket, buffer, sizeof(buffer), 0);
                                 buffer[data] = '\0';
                                 std::string request(buffer); // Convert char* to string
-                                while (data > 0)
-                                {
-                                    if (data != sizeof(buffer))
-                                        break;
-                                    data = recv(clientSocket, buffer, sizeof(buffer), 0);
-                                    buffer[data] = '\0';
-                                    request += buffer;
-                                }
+                                // while (data > 0)
+                                // {
+                                //     if (data != sizeof(buffer))
+                                //         break;
+                                //     data = recv(clientSocket, buffer, sizeof(buffer), 0);
+                                //     buffer[data] = '\0';
+                                //     request += buffer;
+                                // }
                                 std::cout << "****** REQUEST ********" << std::endl;
                                 std::cout << request << std::endl;
                                 std::cout << "****** END REQUEST ********" << std::endl;
@@ -125,11 +127,11 @@ int main(int ac, char **av)
                                 clients.push_back(client);
                                 servers[j].addClient(clientSocket);
                                 // std::string response = "HTTP/1.1 200 OK\nContent-Type: text/text\nContent-Length: 21\n\nHelloThisisfrom lolol";
-                                std::string response = handleRequest(clients[0], mime);
+                                std::string response = handleRequest(clients[0], config);
                                 send(clientSocket, response.c_str(), response.size(), 0);
                                 close(clientSocket);
                                 // servers[j].getClientSockets().pop_back(); // Remove the client socket from the pollfd vector
-                                // clients.pop_back();
+                                clients.clear();
                             }
                         }
                     }

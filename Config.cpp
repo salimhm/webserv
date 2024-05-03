@@ -6,14 +6,26 @@
 /*   By: shmimi <shmimi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/23 22:19:25 by shmimi            #+#    #+#             */
-/*   Updated: 2024/04/23 23:43:35 by shmimi           ###   ########.fr       */
+/*   Updated: 2024/05/03 19:53:14 by shmimi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Config.hpp"
 #include <sstream>
 
-std::vector<int> Config::getPort()
+Config::Config() {}
+Config::Config(const Config &cpy)
+{
+    *this = cpy;
+}
+Config &Config::operator=(const Config &cpy)
+{
+    if (this == &cpy)
+        return *this;
+    return *this;
+}
+
+const std::vector<int> Config::getPort() const
 {
     int port = 0;
     std::ifstream config("webserv.conf");
@@ -31,7 +43,7 @@ std::vector<int> Config::getPort()
     return ports;
 }
 
-std::string Config::getServerName()
+const std::string Config::getServerName() const
 {
     std::ifstream config("webserv.conf");
     std::string line;
@@ -48,7 +60,7 @@ std::string Config::getServerName()
     return serverName;
 }
 
-std::string Config::getRoot()
+const std::string Config::getRoot() const
 {
     std::ifstream config("webserv.conf");
     std::string line;
@@ -65,22 +77,78 @@ std::string Config::getRoot()
     return root;
 }
 
-// std::vector<std::string> Config::getIndex()
-// {
-//     std::ifstream config("webserv.conf");
-//     std::vector<std::string> index;
-//     std::string line;
-//     std::string root;
-//     while (getline(config, line))
-//     {
+const std::vector<std::string> Config::getIndex() const
+{
+    std::ifstream config("webserv.conf");
+    std::vector<std::string> index;
+    std::string line;
+    while (getline(config, line))
+    {
+        if (line.find("index") != std::string::npos)
+        {
+            std::vector<std::string> splitted = split(line, " ");
+            for (size_t i = 1; i < splitted.size(); i++)
+            {
+                if (i == splitted.size() - 1)
+                {
+                    int pos = splitted[i].find(";");
+                    splitted[i] = splitted[i].substr(0, pos);
+                }
+                index.push_back(splitted[i]);
+                std::cout << splitted[i] << std::endl;
+            }
+            break;
+        }
+    }
+    return index;
+}
 
-//         if (line.find("index") != std::string::npos)
-//         {
-//             // std::cout << line << std::endl;
-//             int pos = line.find(";");
-//             root = line.substr(line.find(" ") + 1, pos - line.find(" ") - 1);
-//             std::cout << root << std::endl;
-//         }
-//     }
-//     return index;
-// }
+const std::map<int, std::string> Config::getErrorPage() const
+{
+    std::ifstream config("webserv.conf");
+    std::string line;
+    std::map<int, std::string> errorPage;
+    while (getline(config, line))
+    {
+        if (line.find("error_page") != std::string::npos)
+        {
+            int error = 0;
+            std::vector<std::string> splitted = split(line, " ");
+            std::istringstream(splitted[1]) >> error;
+
+            for (size_t i = 1; i < splitted.size(); i++)
+            {
+                if (i == splitted.size() - 1)
+                {
+                    int pos = splitted[i].find(";");
+                    splitted[i] = splitted[i].substr(0, pos);
+                }
+                errorPage[error] = splitted[2];
+            }
+        }
+    }
+    std::map<int, std::string>::const_iterator it = errorPage.begin();
+    while (it != errorPage.end())
+    {
+        std::cout << it->first << " => " << it->second << std::endl;
+        it++;
+    }
+    return errorPage;
+}
+
+const std::string Config::getAutoIndex() const
+{
+    std::ifstream config("webserv.conf");
+    std::string line;
+    std::string autoIndex;
+    while (getline(config, line))
+    {
+        if (line.find("autoindex") != std::string::npos)
+        {
+            int pos = line.find(";");
+            autoIndex = line.substr(line.find(" ") + 1, pos - line.find(" ") - 1);
+            break;
+        }
+    }
+    return autoIndex;
+}

@@ -6,7 +6,7 @@
 /*   By: shmimi <shmimi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/21 14:58:46 by shmimi            #+#    #+#             */
-/*   Updated: 2024/04/29 13:15:16 by shmimi           ###   ########.fr       */
+/*   Updated: 2024/05/03 17:27:52 by shmimi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,6 +21,8 @@
 #include <vector>
 #include <fstream>
 #include <map>
+#include <sys/stat.h>
+#include <dirent.h>
 
 class Server
 {
