@@ -6,7 +6,7 @@
 /*   By: shmimi <shmimi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/01 02:07:06 by shmimi            #+#    #+#             */
-/*   Updated: 2024/05/03 23:35:59 by shmimi           ###   ########.fr       */
+/*   Updated: 2024/05/04 15:32:07 by shmimi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -185,7 +185,7 @@ std::string handleRequest(Client client, const Config &config)
                 for (size_t i = 0; i < config.getIndex().size(); i++)
                 {
                     filePathCpy = client.getRoot() + client.getUri() + "/" + config.getIndex()[i];
-                    if (access(filePathCpy.c_str(), F_OK) == 0) // File exists, serve it
+                    if (access(filePathCpy.c_str(), F_OK | R_OK) == 0) // File exists + readable, serve it
                     {
                         std::cout << filePathCpy << std::endl;
                         std::cout << "Here==>" << getFileExtension(filePathCpy) << "=>" << config.getContentType(getFileExtension(filePathCpy)) << std::endl;
@@ -218,6 +218,9 @@ std::string handleRequest(Client client, const Config &config)
             generateResponse(response, "./src/html/404.html", "text/html", "404", "Not Found", 0);
             return getResponse(response);
         }
+    }
+    else if (client.getMethod() == "DELETE")
+    {
     }
     return "";
 }
