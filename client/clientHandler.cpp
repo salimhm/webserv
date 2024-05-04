@@ -6,7 +6,7 @@
 /*   By: shmimi <shmimi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/01 02:07:06 by shmimi            #+#    #+#             */
-/*   Updated: 2024/05/04 15:32:07 by shmimi           ###   ########.fr       */
+/*   Updated: 2024/05/04 21:05:16 by shmimi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -106,6 +106,7 @@ std::string readFile(std::string filePath)
     std::string content;
     while (getline(file, line))
         content += line;
+    file.close();
     return content;
 }
 
@@ -116,6 +117,21 @@ std::string getResponse(Response responseObj)
 
     response += responseObj.getHttpVersion() + " " + responseObj.getStatus() + " " + responseObj.getStatusMessage() + "\n" + responseObj.getContentType() + "\n" + responseObj.getContentLength() + "\n\n" + responseObj.getBody();
     return response;
+}
+
+std::string generateIndex(int statusCode)
+{
+    switch (statusCode)
+    {
+    case 403:
+        return readFile("./src/html/403.html");
+        break;
+    case 404:
+        return readFile("./src/html/404.html");
+    default:
+        return "";
+        break;
+    }
 }
 
 void generateResponse(Response &response, const std::string &filePath, const std::string &contentType, const std::string &status, const std::string &statusMessage, int autoIndexFlag)
@@ -159,8 +175,64 @@ std::string generateAutoIndex(const std::string &filePath, const Config &config)
         // std::cout << "filePath => " << href << std::endl;
         entry = readdir(dir);
     }
+    closedir(dir);
     autoIndex += "</ul></body></html>";
     return autoIndex;
+}
+
+std::string getStatusMessage(int statusCode)
+{
+    switch (statusCode)
+    {
+    case 200:
+        return "OK";
+        break;
+    case 201:
+        return "Created";
+        break;
+    case 202:
+        return "Accepted";
+        break;
+    case 301:
+        return "Moved Permanently";
+        break;
+    case 302:
+        return "Found";
+        break;
+    case 400:
+        return "Bad Request";
+        break;
+    case 403:
+        return "Forbidden";
+        break;
+    case 404:
+        return "Not Found";
+        break;
+    case 405:
+        return "Method Not Allowed";
+        break;
+    case 408:
+        return "Request Timeout";
+        break;
+    case 413:
+        return "Payload Too Large";
+        break;
+    case 414:
+        return "URI Too Long";
+        break;
+    case 500:
+        return "Internal Server Error";
+        break;
+    case 501:
+        return "Not Implemented";
+        break;
+    case 502:
+        return "Bad Gateway";
+        break;
+    default:
+        return "";
+        break;
+    }
 }
 
 std::string handleRequest(Client client, const Config &config)
@@ -174,14 +246,14 @@ std::string handleRequest(Client client, const Config &config)
     Response response;
 
     std::string filePath = client.getRoot() + client.getUri();
+    std::string filePathCpy = filePath;
+    struct stat fileStat;
     if (client.getMethod() == "GET")
     {
-        struct stat fileStat;
-        if (stat(filePath.c_str(), &fileStat) == 0) // Check if file exists
+        if (stat(filePath.c_str(), &fileStat) == 0) // Check if file/directory exists
         {
             if (S_ISDIR(fileStat.st_mode)) // Handle directories
             {
-                std::string filePathCpy = filePath;
                 for (size_t i = 0; i < config.getIndex().size(); i++)
                 {
                     filePathCpy = client.getRoot() + client.getUri() + "/" + config.getIndex()[i];
@@ -202,6 +274,15 @@ std::string handleRequest(Client client, const Config &config)
                 }
                 else
                 {
+                    std::string statusCodeStr = config.getIndex()[config.getIndex().size() - 1];
+                    if (statusCodeStr[0] == '=')
+                    {
+                        int statusCode;
+                        std::istringstream(statusCodeStr.substr(1)) >> statusCode;
+                        std::string index = generateIndex(statusCode);
+                        generateResponse(response, index, "text/html", statusCodeStr.substr(1), getStatusMessage(statusCode), 1);
+                        return getResponse(response);
+                    }
                     generateResponse(response, "./src/html/403.html", "text/html", "403", "Forbidden", 0);
                     return getResponse(response);
                 }
@@ -221,6 +302,33 @@ std::string handleRequest(Client client, const Config &config)
     }
     else if (client.getMethod() == "DELETE")
     {
+        if (stat(filePath.c_str(), &fileStat) == 0) // check if file/directory exists
+        {
+            if (access(filePath.c_str(), F_OK | X_OK) == 0) // if file exists + executable, delete it!
+            {
+                if (std::remove(filePath.c_str()) != 0)
+                {
+                    std::cout << "Here\n";
+                    generateResponse(response, "./src/html/500.html", "text/html", "500", "Internal Server Error", 0);
+                    return getResponse(response);
+                }
+                else
+                {
+                    generateResponse(response, "", "text/html", "204", "No Content", 1);
+                    return getResponse(response);
+                }
+            }
+            else
+            {
+                generateResponse(response, "./src/html/403.html", "text/html", "403", "Forbidden", 0);
+                return getResponse(response);
+            }
+        }
+        else
+        {
+            generateResponse(response, "./src/html/404.html", "text/html", "404", "Not Found", 0);
+            return getResponse(response);
+        }
     }
     return "";
 }

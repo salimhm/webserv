@@ -6,7 +6,7 @@
 /*   By: shmimi <shmimi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/01 13:24:47 by shmimi            #+#    #+#             */
-/*   Updated: 2024/05/03 15:59:58 by shmimi           ###   ########.fr       */
+/*   Updated: 2024/05/04 16:15:00 by shmimi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,6 +20,7 @@ enum StatusCode
     OK = 200,
     CREATED = 201,
     ACCEPTED = 202,
+    NO_CONTENT = 204,
     MOVED_PERMANENTLY = 301,
     FOUND = 302,
     BAD_REQUEST = 400,

@@ -6,7 +6,7 @@
 /*   By: shmimi <shmimi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/01 17:31:26 by shmimi            #+#    #+#             */
-/*   Updated: 2024/05/03 23:41:12 by shmimi           ###   ########.fr       */
+/*   Updated: 2024/05/04 16:57:53 by shmimi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,6 +41,7 @@ Mime::Mime() : _file("mime.types")
             break;
         }
     }
+    file.close();
     this->_mimeMap = mimeMap;
 
     // std::map<std::vector<std::string>, std::string>::iterator it = mimeMap.begin();
