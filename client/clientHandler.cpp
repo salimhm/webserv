@@ -6,7 +6,7 @@
 /*   By: shmimi <shmimi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/01 02:07:06 by shmimi            #+#    #+#             */
-/*   Updated: 2024/05/06 21:06:33 by shmimi           ###   ########.fr       */
+/*   Updated: 2024/05/06 22:22:05 by shmimi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,6 +24,7 @@ struct Request parseRequest(const std::string &request)
         std::string path;
         std::string version;
         std::string body;
+        std::vector< std::pair<std::string, std::string> > headers;
 
         std::string headerString;
 
@@ -38,9 +39,42 @@ struct Request parseRequest(const std::string &request)
         body = request.substr(crlf + 4);
 
         headerString = request.substr(request.find("\r\n"), crlf - body.size() - 2);
-        std::cout << "************ Printing headers *************";
-        std::cout << headerString << std::endl;
-        std::cout << "************ END Printing headers *************\n";
+
+        size_t posHeader = 2;
+        int pos = headerString.find("\n", posHeader);
+        // std::cout << headerString.substr(0, 23) << std::endl;
+        int start = 0;
+        int semiColon = 0;
+        while (posHeader != std::string::npos)
+        {
+            posHeader++;
+            pos = headerString.find("\n", posHeader);
+            posHeader = headerString.find("\n", pos);
+            std::string header = headerString.substr(start, posHeader - start - 1);
+            start = posHeader + 1;
+            semiColon = header.find_first_of(":");
+            std::string key = header.substr(0, semiColon);
+            std::string value = header.substr(semiColon + 1);
+            if (semiColon < 0)
+                break;
+            headers.push_back(std::make_pair(key, value));
+        }
+        
+        // std::cout << "************ Printing headers *************";
+        // for (size_t i = 0; i < headers.size(); i++)
+        // {
+        //     std::cout << headers[i].first << "=>" << headers[i].second << std::endl;
+        // }
+        // std::cout << "************ END Printing headers *************\n";
+        
+        httpRequest.startLine.push_back(method);
+        httpRequest.startLine.push_back(path);
+        httpRequest.startLine.push_back(version);
+
+        httpRequest.headers = headers;
+
+        if (body.size() > 0)
+            httpRequest.body = body;
 
         return httpRequest;
     }

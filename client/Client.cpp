@@ -6,7 +6,7 @@
 /*   By: shmimi <shmimi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/25 00:04:21 by shmimi            #+#    #+#             */
-/*   Updated: 2024/05/04 21:04:16 by shmimi           ###   ########.fr       */
+/*   Updated: 2024/05/06 22:22:48 by shmimi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,7 +30,7 @@ const std::vector<std::string>& Client::getRequest() const
     return request.startLine;
 }
 
-const std::map<std::string, std::string>& Client::getHeaders() const
+const std::vector< std::pair<std::string, std::string> >& Client::getHeaders() const
 {
     return request.headers;
 }
