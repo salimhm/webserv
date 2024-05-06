@@ -6,7 +6,7 @@
 /*   By: shmimi <shmimi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/23 22:15:53 by shmimi            #+#    #+#             */
-/*   Updated: 2024/05/03 19:52:29 by shmimi           ###   ########.fr       */
+/*   Updated: 2024/05/05 17:32:39 by shmimi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,11 +18,12 @@
 class Config: public Mime
 {
     private:
-        std::string serverName;
-        std::string root;
-        std::vector<std::string> index;
-        std::map<int, std::string> errorPage;
-        std::string autoIndex;
+        // std::string serverName;
+        // std::string root;
+        // std::vector<std::string> index;
+        // std::map<int, std::string> errorPage;
+        // std::string autoIndex;
+        // std::string _clientMaxBodySize;
     public:
         Config();
         Config(const Config& cpy);
@@ -33,4 +34,5 @@ class Config: public Mime
         const std::map<int, std::string> getErrorPage() const;
         const std::vector<std::string> getIndex() const;
         const std::string getAutoIndex() const;
+        int getClientMaxBodySize() const;
 };

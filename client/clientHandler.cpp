@@ -6,7 +6,7 @@
 /*   By: shmimi <shmimi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/01 02:07:06 by shmimi            #+#    #+#             */
-/*   Updated: 2024/05/04 21:05:16 by shmimi           ###   ########.fr       */
+/*   Updated: 2024/05/06 21:06:33 by shmimi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,39 +42,6 @@ struct Request parseRequest(const std::string &request)
         std::cout << headerString << std::endl;
         std::cout << "************ END Printing headers *************\n";
 
-        std::vector<std::string> splittedHeader;
-        std::vector<std::string> splittedHeader2;
-        splittedHeader = split(headerString, "\r\n");
-
-        for (size_t i = 0; i < splittedHeader.size(); i++)
-        {
-            splittedHeader2 = split(splittedHeader[i], ": ");
-            if (splittedHeader2[0].size() > 0)
-                httpRequest.headers[splittedHeader2[0]] = splittedHeader2[1];
-        }
-
-        httpRequest.startLine.push_back(method);
-        httpRequest.startLine.push_back(path);
-        httpRequest.startLine.push_back(version);
-        if (body.size() > 0)
-            httpRequest.body = body;
-        // std::cout << "************ Start Line *************\n";
-        // for (size_t i = 0; i < httpRequest.startLine.size(); i++)
-        // {
-        //     std::cout << httpRequest.startLine[i] << " " << httpRequest.startLine[i].size() << std::endl;
-        // }
-        // std::cout << "************ END Start Line *************\n";
-        std::cout << "************ Printing headers *************\n";
-        std::map<std::string, std::string>::iterator it = httpRequest.headers.begin();
-        while (it != httpRequest.headers.end())
-        {
-            std::cout << it->first << "=>" << it->second << std::endl;
-            it++;
-        }
-        std::cout << "************ END headers *************\n";
-        std::cout << "************ Body *************\n";
-        std::cout << httpRequest.body << std::endl;
-        std::cout << "************ END Body *************\n";
         return httpRequest;
     }
     catch (const std::exception &e)
@@ -329,6 +296,10 @@ std::string handleRequest(Client client, const Config &config)
             generateResponse(response, "./src/html/404.html", "text/html", "404", "Not Found", 0);
             return getResponse(response);
         }
+    }
+    else if (client.getMethod() == "POST")
+    {
+        std::cout << "Body is ====> " << client.getBody() << std::endl;
     }
     return "";
 }

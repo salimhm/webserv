@@ -6,7 +6,7 @@
 /*   By: shmimi <shmimi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/23 22:19:25 by shmimi            #+#    #+#             */
-/*   Updated: 2024/05/03 19:53:14 by shmimi           ###   ########.fr       */
+/*   Updated: 2024/05/05 17:32:09 by shmimi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -151,4 +151,23 @@ const std::string Config::getAutoIndex() const
         }
     }
     return autoIndex;
+}
+
+int Config::getClientMaxBodySize() const
+{
+    std::ifstream config("webserv.conf");
+    std::string line;
+    int clientMaxBodySize = 0;
+    while (getline(config, line))
+    {
+        if (line.find("client_max_body_size") != std::string::npos)
+        {
+            // int pos = line.find(";");
+            std::vector<std::string> splitted = split(line, " ");
+            std::istringstream(splitted[1]) >> clientMaxBodySize;
+            std::cout << clientMaxBodySize << std::endl;
+            break;
+        }
+    }
+    return clientMaxBodySize;
 }

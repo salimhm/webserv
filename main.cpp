@@ -6,7 +6,7 @@
 /*   By: shmimi <shmimi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/21 15:10:14 by shmimi            #+#    #+#             */
-/*   Updated: 2024/05/03 22:53:49 by shmimi           ###   ########.fr       */
+/*   Updated: 2024/05/06 20:36:12 by shmimi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,7 +40,7 @@ int main(int ac, char **av)
     std::ifstream file("webserv.conf");
     Config config;
 
-    // config.getContentType(".html");
+    config.getClientMaxBodySize();
 
     // Mime mime;
     // mime.getExtension();
