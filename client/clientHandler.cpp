@@ -6,7 +6,7 @@
 /*   By: shmimi <shmimi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/01 02:07:06 by shmimi            #+#    #+#             */
-/*   Updated: 2024/05/06 22:22:05 by shmimi           ###   ########.fr       */
+/*   Updated: 2024/05/07 17:26:08 by shmimi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -60,12 +60,12 @@ struct Request parseRequest(const std::string &request)
             headers.push_back(std::make_pair(key, value));
         }
         
-        // std::cout << "************ Printing headers *************";
-        // for (size_t i = 0; i < headers.size(); i++)
-        // {
-        //     std::cout << headers[i].first << "=>" << headers[i].second << std::endl;
-        // }
-        // std::cout << "************ END Printing headers *************\n";
+        std::cout << "************ Printing headers *************";
+        for (size_t i = 0; i < headers.size(); i++)
+        {
+            std::cout << headers[i].first << "=>" << headers[i].second << std::endl;
+        }
+        std::cout << "************ END Printing headers *************\n";
         
         httpRequest.startLine.push_back(method);
         httpRequest.startLine.push_back(path);
@@ -298,6 +298,7 @@ std::string handleRequest(Client client, const Config &config)
         else // File/Directory doesn't exist
         {
             generateResponse(response, "./src/html/404.html", "text/html", "404", "Not Found", 0);
+            std::cout << "Here body => " << client.getBody() << std::endl;
             return getResponse(response);
         }
     }

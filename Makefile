@@ -1,6 +1,6 @@
 CC			=	c++
 
-CPPFLAGS	=	-Wall -Werror -Wextra #-fsanitize=address -g
+CPPFLAGS	=	-Wall -Werror -Wextra -fsanitize=address -g
 
 SRCS		=	main.cpp\
 				server/Server.cpp\

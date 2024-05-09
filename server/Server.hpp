@@ -6,7 +6,7 @@
 /*   By: shmimi <shmimi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/21 14:58:46 by shmimi            #+#    #+#             */
-/*   Updated: 2024/05/03 17:27:52 by shmimi           ###   ########.fr       */
+/*   Updated: 2024/05/08 21:28:39 by shmimi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,6 +23,8 @@
 #include <map>
 #include <sys/stat.h>
 #include <dirent.h>
+#include <fcntl.h>
+
 
 class Server
 {

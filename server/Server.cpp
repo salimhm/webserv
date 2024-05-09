@@ -6,7 +6,7 @@
 /*   By: shmimi <shmimi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/20 18:08:33 by shmimi            #+#    #+#             */
-/*   Updated: 2024/04/30 13:21:17 by shmimi           ###   ########.fr       */
+/*   Updated: 2024/05/09 00:52:09 by shmimi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -69,10 +69,25 @@ std::vector<pollfd> &Server::getClientSockets()
     return this->clientSockets;
 }
 
+int setNonBlocking(int sockfd) {
+    int flags = fcntl(sockfd, F_GETFL, 0);
+    if (flags < 0) {
+        perror("Error getting socket flags");
+        return -1;
+    }
+    if (fcntl(sockfd, F_SETFL, flags | O_NONBLOCK) < 0) {
+        perror("Error setting socket to non-blocking mode");
+        return -1;
+    }
+    return 0;
+}
+
 void Server::addClient(int clientFd)
 {
     struct pollfd clientSocket;
     clientSocket.fd = clientFd;
-    clientSocket.events = POLLIN;
+    clientSocket.events = POLLIN | POLLOUT;
+    setNonBlocking(clientFd);//TO REVIEW
+    // fcntl(clientFd, F_SETFL, O_NONBLOCK);
     this->clientSockets.push_back(clientSocket);
 }
