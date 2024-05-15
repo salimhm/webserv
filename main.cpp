@@ -6,7 +6,7 @@
 /*   By: shmimi <shmimi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/21 15:10:14 by shmimi            #+#    #+#             */
-/*   Updated: 2024/05/15 19:09:26 by shmimi           ###   ########.fr       */
+/*   Updated: 2024/05/15 20:59:18 by shmimi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -115,11 +115,6 @@ int main(int ac, char **av)
         int clientSocket;
         std::string request;
 
-        for (size_t i = 0; i < servers.size(); i++)
-        {
-            std::cout << "Server sockets are: " << servers[i].getSockfd() << std::endl;
-        }
-
         std::string response = "HTTP/1.1 200 OK\nContent-Type: text/plain\nContent-Length: 12\n\nHello World!";
         while (1)
         {
@@ -160,6 +155,7 @@ int main(int ac, char **av)
                             std::cout << "Bytes sent: " << bytes << std::endl;
                             close(clients[k].getClientFd());
                             clients.erase(clients.begin() + k);
+                            pollfds.erase(pollfds.begin() + j);
                         }
                     }
                 }
