@@ -6,13 +6,13 @@
 /*   By: shmimi <shmimi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/25 00:04:21 by shmimi            #+#    #+#             */
-/*   Updated: 2024/05/06 22:22:48 by shmimi           ###   ########.fr       */
+/*   Updated: 2024/05/15 02:48:50 by shmimi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Client.hpp"
 
-Client::Client(const int port, const int clientFd, const Request& request) : port(port), clientFd(clientFd), request(request) {}
+Client::Client(const int clientFd) : clientFd(clientFd) {}
 
 
 int Client::getClientFd() const
@@ -20,10 +20,10 @@ int Client::getClientFd() const
     return this->clientFd;
 }
 
-int Client::getPort() const
-{
-    return this->port;
-}
+// int Client::getPort() const
+// {
+//     return this->port;
+// }
 
 const std::vector<std::string>& Client::getRequest() const
 {
@@ -68,4 +68,9 @@ void Client::setUri(const std::string &uri)
 void Client::setVersion(const std::string &version)
 {
     this->_version = version;
+}
+
+void Client::setRequest(const Request &request)
+{
+    this->request = request;
 }

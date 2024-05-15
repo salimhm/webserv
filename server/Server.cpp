@@ -6,7 +6,7 @@
 /*   By: shmimi <shmimi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/20 18:08:33 by shmimi            #+#    #+#             */
-/*   Updated: 2024/05/09 00:52:09 by shmimi           ###   ########.fr       */
+/*   Updated: 2024/05/15 19:09:56 by shmimi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,7 +15,8 @@
 Server::Server(int port)
 {
     this->sockfd = socket(AF_INET, SOCK_STREAM, 0);
-    if(this->sockfd  == 0){
+    if (this->sockfd == 0)
+    {
         perror("In socket");
         exit(1);
     }
@@ -32,11 +33,11 @@ Server::Server(int port)
         perror("Couldn't bind socket to the given address");
         exit(1);
     }
-    if(listen(this->getSockfd(), 10) < 0){
+    if (listen(this->getSockfd(), 10) < 0)
+    {
         perror("Listen");
         exit(1);
     }
-    
 }
 
 int Server::getSockfd()
@@ -59,7 +60,7 @@ const sockaddr_in &Server::getAddr() const
     return this->addr;
 }
 
-socklen_t& Server::getAddrlen()
+socklen_t &Server::getAddrlen()
 {
     return this->addrlen;
 }
@@ -69,25 +70,31 @@ std::vector<pollfd> &Server::getClientSockets()
     return this->clientSockets;
 }
 
-int setNonBlocking(int sockfd) {
+int setNonBlocking(int sockfd)
+{
     int flags = fcntl(sockfd, F_GETFL, 0);
-    if (flags < 0) {
+    if (flags < 0)
+    {
         perror("Error getting socket flags");
         return -1;
     }
-    if (fcntl(sockfd, F_SETFL, flags | O_NONBLOCK) < 0) {
+    if (fcntl(sockfd, F_SETFL, flags | O_NONBLOCK) < 0)
+    {
         perror("Error setting socket to non-blocking mode");
         return -1;
     }
     return 0;
 }
 
-void Server::addClient(int clientFd)
+pollfd Server::addClient(int clientFd, int flag)
 {
     struct pollfd clientSocket;
     clientSocket.fd = clientFd;
-    clientSocket.events = POLLIN | POLLOUT;
-    setNonBlocking(clientFd);//TO REVIEW
-    // fcntl(clientFd, F_SETFL, O_NONBLOCK);
+    if (flag)
+        clientSocket.events = POLLIN | POLLHUP | POLLERR;
+    else
+        clientSocket.events = POLLIN | POLLOUT;
+    setNonBlocking(clientFd); // TO REVIEW
     this->clientSockets.push_back(clientSocket);
+    return clientSocket;
 }

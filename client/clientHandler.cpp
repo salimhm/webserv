@@ -6,7 +6,7 @@
 /*   By: shmimi <shmimi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/01 02:07:06 by shmimi            #+#    #+#             */
-/*   Updated: 2024/05/07 17:26:08 by shmimi           ###   ########.fr       */
+/*   Updated: 2024/05/15 17:50:30 by shmimi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -60,12 +60,12 @@ struct Request parseRequest(const std::string &request)
             headers.push_back(std::make_pair(key, value));
         }
         
-        std::cout << "************ Printing headers *************";
-        for (size_t i = 0; i < headers.size(); i++)
-        {
-            std::cout << headers[i].first << "=>" << headers[i].second << std::endl;
-        }
-        std::cout << "************ END Printing headers *************\n";
+        // std::cout << "************ Printing headers *************";
+        // for (size_t i = 0; i < headers.size(); i++)
+        // {
+        //     std::cout << headers[i].first << "=>" << headers[i].second << std::endl;
+        // }
+        // std::cout << "************ END Printing headers *************\n";
         
         httpRequest.startLine.push_back(method);
         httpRequest.startLine.push_back(path);
@@ -157,12 +157,12 @@ std::string generateAutoIndex(const std::string &filePath, const Config &config)
     dir = opendir(filePath.c_str());
     if (dir == NULL)
     {
-        std::cout << "Directory is =>" << filePath << std::endl;
-        std::cerr << "Error opening directory" << std::endl;
+        // std::cout << "Directory is =>" << filePath << std::endl;
+        // std::cerr << "Error opening directory" << std::endl;
         return "";
     }
     entry = readdir(dir);
-    std::cout << "First => " << entry->d_name << std::endl;
+    // std::cout << "First => " << entry->d_name << std::endl;
     std::string title = filePath.substr(config.getRoot().size());
     std::string autoIndex = "<html><head><title>Index of " + title + "</title></head><body><h1>Index of " + title + "</h1><hr><ul>";
     while (entry != NULL)
@@ -236,7 +236,7 @@ std::string getStatusMessage(int statusCode)
     }
 }
 
-std::string handleRequest(Client client, const Config &config)
+std::string handleRequest(Client& client, const Config &config)
 {
     (void)config;
 
@@ -260,15 +260,15 @@ std::string handleRequest(Client client, const Config &config)
                     filePathCpy = client.getRoot() + client.getUri() + "/" + config.getIndex()[i];
                     if (access(filePathCpy.c_str(), F_OK | R_OK) == 0) // File exists + readable, serve it
                     {
-                        std::cout << filePathCpy << std::endl;
-                        std::cout << "Here==>" << getFileExtension(filePathCpy) << "=>" << config.getContentType(getFileExtension(filePathCpy)) << std::endl;
+                        // std::cout << filePathCpy << std::endl;
+                        // std::cout << "Here==>" << getFileExtension(filePathCpy) << "=>" << config.getContentType(getFileExtension(filePathCpy)) << std::endl;
                         generateResponse(response, filePathCpy, config.getContentType(getFileExtension(filePathCpy)), "200", "OK", 0);
                         return getResponse(response);
                     }
                 }
                 if (config.getAutoIndex() == "on")
                 {
-                    std::cout << "here lol ==========> " << filePath << "<==========" << std::endl;
+                    // std::cout << "here lol ==========> " << filePath << "<==========" << std::endl;
                     std::string autoIndex = generateAutoIndex(filePath, config);
                     generateResponse(response, autoIndex, "text/html", "200", "OK", 1);
                     return getResponse(response);
@@ -290,7 +290,7 @@ std::string handleRequest(Client client, const Config &config)
             }
             else // Handle files
             {
-                std::cout << "Here==>" << getFileExtension(filePath) << "=>" << config.getContentType(getFileExtension(filePath)) << std::endl;
+                // std::cout << "Here==>" << getFileExtension(filePath) << "=>" << config.getContentType(getFileExtension(filePath)) << std::endl;
                 generateResponse(response, filePath, config.getContentType(getFileExtension(filePath)), "200", "OK", 0);
                 return getResponse(response);
             }
@@ -298,7 +298,7 @@ std::string handleRequest(Client client, const Config &config)
         else // File/Directory doesn't exist
         {
             generateResponse(response, "./src/html/404.html", "text/html", "404", "Not Found", 0);
-            std::cout << "Here body => " << client.getBody() << std::endl;
+            // std::cout << "Here body => " << client.getBody() << std::endl;
             return getResponse(response);
         }
     }
@@ -310,7 +310,7 @@ std::string handleRequest(Client client, const Config &config)
             {
                 if (std::remove(filePath.c_str()) != 0)
                 {
-                    std::cout << "Here\n";
+                    // std::cout << "Here\n";
                     generateResponse(response, "./src/html/500.html", "text/html", "500", "Internal Server Error", 0);
                     return getResponse(response);
                 }

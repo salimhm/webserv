@@ -6,7 +6,7 @@
 /*   By: shmimi <shmimi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/23 22:19:25 by shmimi            #+#    #+#             */
-/*   Updated: 2024/05/05 17:32:09 by shmimi           ###   ########.fr       */
+/*   Updated: 2024/05/12 02:17:05 by shmimi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -95,7 +95,7 @@ const std::vector<std::string> Config::getIndex() const
                     splitted[i] = splitted[i].substr(0, pos);
                 }
                 index.push_back(splitted[i]);
-                std::cout << splitted[i] << std::endl;
+                // std::cout << splitted[i] << std::endl;
             }
             break;
         }
@@ -130,7 +130,7 @@ const std::map<int, std::string> Config::getErrorPage() const
     std::map<int, std::string>::const_iterator it = errorPage.begin();
     while (it != errorPage.end())
     {
-        std::cout << it->first << " => " << it->second << std::endl;
+        // std::cout << it->first << " => " << it->second << std::endl;
         it++;
     }
     return errorPage;

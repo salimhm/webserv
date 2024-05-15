@@ -6,7 +6,7 @@
 /*   By: shmimi <shmimi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/31 02:36:33 by shmimi            #+#    #+#             */
-/*   Updated: 2024/05/06 22:23:17 by shmimi           ###   ########.fr       */
+/*   Updated: 2024/05/15 02:48:41 by shmimi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,7 +25,7 @@ struct Request
 class Client: public Config
 {
     private:
-        int port;
+        // int port;
         int clientFd;
         Request request;
 
@@ -34,10 +34,10 @@ class Client: public Config
         std::string _version;
 
     public:
-        Client(const int port, const int clientFd, const Request &request);
+        Client(const int clientFd);
         /********** Getters *************/
         int getClientFd() const;
-        int getPort() const;
+        // int getPort() const;
         const std::vector<std::string> &getRequest() const;
         const std::vector< std::pair<std::string, std::string> >& getHeaders() const;
         const std::string& getBody() const;
@@ -49,5 +49,7 @@ class Client: public Config
         void setMethod(const std::string &method);
         void setUri(const std::string &uri);
         void setVersion(const std::string &version);
+
+        void setRequest(const Request &request);
 
 };
