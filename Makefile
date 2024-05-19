@@ -1,15 +1,16 @@
 CC			=	c++
 
-CPPFLAGS	=	-Wall -Werror -Wextra #-fsanitize=address -g
+CPPFLAGS	=	-Wall -Werror -Wextra -fsanitize=address -g
 
 SRCS		=	main.cpp\
 				server/Server.cpp\
-				Config.cpp\
+				parsing/Config.cpp\
 				utils.cpp\
 				client/Client.cpp\
 				client/clientHandler.cpp\
 				server/Response.cpp\
-				server/Mime.cpp\
+				parsing/Mime.cpp\
+				parsing/Parser.cpp\
 
 OBJS		=	$(SRCS:.cpp=.o)
 

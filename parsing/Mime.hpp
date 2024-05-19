@@ -6,13 +6,13 @@
 /*   By: shmimi <shmimi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/01 17:27:33 by shmimi            #+#    #+#             */
-/*   Updated: 2024/05/01 23:12:52 by shmimi           ###   ########.fr       */
+/*   Updated: 2024/05/15 21:40:31 by shmimi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #pragma once
 
-#include "Server.hpp"
+#include "../server/Server.hpp"
 #include "../utils.hpp"
 
 class Mime

@@ -1,3 +1,3 @@
-let string = 'This is my first request lol';
+let string = 'listen      8000';
 
-console.log(string.split('This'));
+console.log(string.split(' '));

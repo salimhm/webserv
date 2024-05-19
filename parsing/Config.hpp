@@ -6,14 +6,14 @@
 /*   By: shmimi <shmimi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/23 22:15:53 by shmimi            #+#    #+#             */
-/*   Updated: 2024/05/05 17:32:39 by shmimi           ###   ########.fr       */
+/*   Updated: 2024/05/16 20:24:17 by shmimi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #pragma once
 
-#include "server/Server.hpp"
-#include "server/Mime.hpp"
+#include "../server/Server.hpp"
+#include "../parsing/Mime.hpp"
 
 class Config: public Mime
 {
@@ -24,10 +24,16 @@ class Config: public Mime
         // std::map<int, std::string> errorPage;
         // std::string autoIndex;
         // std::string _clientMaxBodySize;
+        std::string& filePath;
+        static std::string nullFile; //Contains nothing
     public:
         Config();
+        Config(std::string& file);
         Config(const Config& cpy);
         Config& operator=(const Config& cpy);
+
+        // std::string getFileContent(const std::string& filename) const;
+
         const std::vector<int> getPort() const;
         const std::string getServerName() const;
         const std::string getRoot() const;
@@ -35,4 +41,6 @@ class Config: public Mime
         const std::vector<std::string> getIndex() const;
         const std::string getAutoIndex() const;
         int getClientMaxBodySize() const;
+
+        void resetFile() const;
 };

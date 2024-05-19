@@ -1,27 +1,38 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   main.cpp                                           :+:      :+:    :+:   */
+/*   Parser.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: shmimi <shmimi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/05/16 21:35:35 by shmimi            #+#    #+#             */
-/*   Updated: 2024/05/18 19:25:00 by shmimi           ###   ########.fr       */
+/*   Created: 2024/05/16 22:48:15 by shmimi            #+#    #+#             */
+/*   Updated: 2024/05/19 15:19:55 by shmimi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "parsing/Parser.hpp"
+#pragma once
+#include <iostream>
+#include <fstream>
+#include <vector>
+#include <map>
 
-int main()
+enum Directives {
+    LISTEN,
+    SERVER_NAME,
+    ROOT,
+    INDEX,
+    ERROR_PAGE,
+    AUTO_INDEX,
+    LIMIT_CLIENT_BODY_SIZE,
+    UPLOAD_DIR,
+    
+};
+
+class Parser
 {
-    std::string filePath = "webserv.yml";
-    try
-    {
-        Parser parser(filePath);
-        parser.parse();
-    }
-    catch (const std::exception &e)
-    {
-        std::cerr << e.what() << std::endl;
-    }
-}
+    private:
+        std::string filePath;
+    public:
+        Parser(std::string& filePath);
+        void parse();
+};
