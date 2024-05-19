@@ -6,7 +6,7 @@
 /*   By: shmimi <shmimi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/16 22:48:15 by shmimi            #+#    #+#             */
-/*   Updated: 2024/05/19 15:19:55 by shmimi           ###   ########.fr       */
+/*   Updated: 2024/05/19 21:49:53 by shmimi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,6 +32,8 @@ class Parser
 {
     private:
         std::string filePath;
+        std::vector<std::pair<std::string, std::pair<std::string, std::vector<std::string> > > > locations;
+        std::vector<std::pair<std::string, std::vector<std::string> > > globalDirectives;
     public:
         Parser(std::string& filePath);
         void parse();

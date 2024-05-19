@@ -6,7 +6,7 @@
 /*   By: shmimi <shmimi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/16 22:50:03 by shmimi            #+#    #+#             */
-/*   Updated: 2024/05/19 17:43:59 by shmimi           ###   ########.fr       */
+/*   Updated: 2024/05/19 21:50:16 by shmimi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,9 +43,9 @@ std::string getServers(std::ifstream &file)
 std::string trim(std::string &str)
 {
     size_t i = 0;
-    if (str[0] == ' ')
+    if (str[0] == ' ' || str[i] == '\t')
     {
-        while (isspace(str[i]))
+        while (isspace(str[i]) || str[i] == '\t')
             i++;
     }
     str.erase(0, i);
@@ -54,33 +54,45 @@ std::string trim(std::string &str)
         if (str[i] == '\n')
         {
             i++;
-            while (isspace(str[i]))
+            while (isspace(str[i]) || str[i] == '\t')
                 str.erase(i, 1);
         }
     }
-
     for (size_t i = 0; i < str.size(); i++)
     {
-        if (isspace(str[i]))
+        if (str[i] == '\t')
+            str[i] = ' ';
+    }
+    for (size_t i = 0; i < str.size(); i++)
+    {
+        if (str[i] == '\t')
+            str[i] = ' ';
+        if (isspace(str[i]) || str[i] == '\t')
         {
-            int firstChar = i;
-            int countSpace = 0;
-            while (isspace(str[i]))
+            size_t firstSpace = i;
+            size_t countSpace = 0;
+            while (isspace(str[i]) || str[i] == '\t')
             {
                 countSpace++;
                 i++;
             }
             if (countSpace > 1)
-                str.erase(firstChar, countSpace - 1);
+                str.erase(firstSpace, countSpace -1);
         }
     }
 
     return str;
 }
 
+// void checkSyntax()
+// {
+    
+// }
+
 void parseServer(std::string &serverBlock)
 {
-    std::map<std::string, std::vector<std::string> > serverDirectives;
+    // std::map<std::string, std::vector<std::string> > serverDirectives;
+    std::vector<std::pair<std::string, std::vector<std::string> > > serverDirectives;
 
     serverBlock = trim(serverBlock);
     // std::cout << "SERVER BLOCK " << std::endl;
@@ -90,11 +102,22 @@ void parseServer(std::string &serverBlock)
     while (i < serverBlocks.size())
     {
         std::vector<std::string> directives = split(serverBlocks[i], " ");
-        if (directives.size() >= 2)
-            std::cout << "DIRECTIVE " << directives[0] << "==>" << directives[1] << std::endl;
+        if (directives.size() == 2)
+        {
+            // std::cout << "DIRECTIVE " << directives[0] << "==>" << directives[1] << std::endl
+            std::string directive = directives[0];
+            directives.erase(directives.begin());
+            serverDirectives.push_back(std::make_pair(directive, directives));
+        }
         serverBlocks.erase(serverBlocks.begin());
         std::vector<std::string> serverBlocks = split(serverBlock, "\n");
     }
+
+    for (size_t i = 0; i < serverDirectives.size(); i++)
+    {
+        std::cout << serverDirectives[i].first << "===>" << serverDirectives[i].second[0] << std::endl;
+    }
+    
 }
 
 void Parser::parse()
@@ -126,10 +149,10 @@ void Parser::parse()
         }
     }
     std::cout << "SIZE " << servers.size() << std::endl;
-    for (size_t i = 0; i < servers.size(); i++)
+    // for (size_t i = 0; i < servers.size(); i++)
     {
         // std::cout << "====> SERVERRR " << i + 1 << " <====" << std::endl;
         // std::cout << servers[i] << std::endl;
-        parseServer(servers[i]);
+        parseServer(servers[0]);
     }
 }
