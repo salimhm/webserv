@@ -1,7 +1,7 @@
 server :
-		listen		8000
+		listen			8000
 		server_name hh
-		root /Users/shmimi/Desktop/webserv/html
+		root /global/path
 		index index.php index.html =403
 		error_page 404 /404.html
 		error_page 500 /500.html
@@ -9,12 +9,10 @@ server :
 		client_max_body_size 1M
 
   server.location / :
-		root /Users/shmimi/Desktop/webserv/html
+		root /local/path/1
 		index index.php index.html =403
+		upload_dir	/lol
 
   server.location /images/ :
-		root /Users/shmimi/Desktop/webserv/html
+		root /local/path/2
 		autoindex off
-
-
-
