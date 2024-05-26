@@ -6,15 +6,20 @@
 /*   By: shmimi <shmimi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/16 22:50:03 by shmimi            #+#    #+#             */
-/*   Updated: 2024/05/23 04:37:22 by shmimi           ###   ########.fr       */
+/*   Updated: 2024/05/26 11:07:52 by shmimi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Parser.hpp"
 #include "../utils.hpp"
 
-Parser::Parser(std::string &filePath) : filePath(filePath)
+Parser::Parser(){}
+
+Parser::~Parser(){}
+
+Parser::Parser(const std::string &filePath) : filePath(filePath)
 {
+    // std::cout << filePath << std::endl;
     this->allowedDirectives.push_back("listen");
     this->allowedDirectives.push_back("server_name");
     this->allowedDirectives.push_back("root");
@@ -23,6 +28,7 @@ Parser::Parser(std::string &filePath) : filePath(filePath)
     this->allowedDirectives.push_back("autoindex");
     this->allowedDirectives.push_back("client_max_body_size");
     this->allowedDirectives.push_back("upload_dir");
+    this->allowedDirectives.push_back("allowed_methods");
 }
 
 std::string getServers(std::ifstream &file)
@@ -39,7 +45,7 @@ std::string getServers(std::ifstream &file)
         serverBlocks = split(line, " ");
         for (size_t i = 0; i < serverBlocks.size(); i++)
         {
-            if (serverBlocks[i] == "server")
+            if (serverBlocks[i] == "server" || serverBlocks[i] == "server:")
             {
                 file.seekg(serverPos);
                 return block;
@@ -76,6 +82,11 @@ void Parser::setServerDirectives(std::vector<std::pair<std::string, std::vector<
         if (directives[j].first == "server.location")
         {
             std::string path = directives[j].second[0];
+            // if (path[path.size() - 1] != '/')
+            //     path[path.size() - 1] = '/';
+            // else
+            path = normalizeUrl(path);
+            // std::cout << "PATH =>>>>>>>" << path << std::endl;
             j++;
             while (j < directives.size() && directives[j].first != "server.location")
             {
@@ -156,7 +167,7 @@ void Parser::parse()
             break;
         block += line;
         serverBlocks = split(line, " ");
-        if (serverBlocks[0] == "server")
+        if (serverBlocks[0] == "server" || serverBlocks[0] == "server:")
         {
             file.seekg(serverPos);
             getline(file, line);

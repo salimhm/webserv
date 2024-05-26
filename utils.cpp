@@ -6,7 +6,7 @@
 /*   By: shmimi <shmimi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/29 14:31:37 by shmimi            #+#    #+#             */
-/*   Updated: 2024/05/21 09:27:28 by shmimi           ###   ########.fr       */
+/*   Updated: 2024/05/26 11:00:38 by shmimi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -69,4 +69,29 @@ std::string trim(std::string &str)
     }
 
     return str;
+}
+
+std::string normalizeUrl(std::string &uri)
+{
+    std::string newUri;
+    if (uri.size() > 1)
+    {
+        int i = 0;
+        while (uri[i])
+        {
+            if (uri[i] == '/')
+            {
+                while (uri[i] == '/')
+                    i++;
+                newUri += '/';
+                continue;
+            }
+            else
+                newUri += uri[i];
+            i++;
+        }
+    }
+    else
+        return uri;
+    return newUri;
 }

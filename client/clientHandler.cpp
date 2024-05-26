@@ -6,7 +6,7 @@
 /*   By: shmimi <shmimi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/01 02:07:06 by shmimi            #+#    #+#             */
-/*   Updated: 2024/05/15 17:50:30 by shmimi           ###   ########.fr       */
+/*   Updated: 2024/05/26 17:50:59 by shmimi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,10 +21,10 @@ struct Request parseRequest(const std::string &request)
         struct Request httpRequest;
 
         std::string method;
-        std::string path;
+        std::string uri;
         std::string version;
         std::string body;
-        std::vector< std::pair<std::string, std::string> > headers;
+        std::vector<std::pair<std::string, std::string> > headers;
 
         std::string headerString;
 
@@ -34,7 +34,12 @@ struct Request parseRequest(const std::string &request)
         int crlf = request.find("\r\n\r\n");
 
         method = request.substr(0, pos1 - 1);
-        path = request.substr(pos1, pos2 - pos1 - 1);
+        uri = request.substr(pos1, pos2 - pos1 - 1);
+
+        uri = normalizeUrl(uri);
+
+        // std::cout << "newUri => " << uri << std::endl;
+
         version = request.substr(pos2, pos3 - pos2 - 1);
         body = request.substr(crlf + 4);
 
@@ -59,16 +64,16 @@ struct Request parseRequest(const std::string &request)
                 break;
             headers.push_back(std::make_pair(key, value));
         }
-        
+
         // std::cout << "************ Printing headers *************";
         // for (size_t i = 0; i < headers.size(); i++)
         // {
         //     std::cout << headers[i].first << "=>" << headers[i].second << std::endl;
         // }
         // std::cout << "************ END Printing headers *************\n";
-        
+
         httpRequest.startLine.push_back(method);
-        httpRequest.startLine.push_back(path);
+        httpRequest.startLine.push_back(uri);
         httpRequest.startLine.push_back(version);
 
         httpRequest.headers = headers;
@@ -102,6 +107,7 @@ std::string readFile(std::string filePath)
     if (!file.is_open())
     {
         std::cerr << "Error opening file" << std::endl;
+        return "";
     }
     std::string line;
     std::string content;
@@ -150,7 +156,7 @@ void generateResponse(Response &response, const std::string &filePath, const std
     response.setContentLength("Content-Length: " + bodyLength.str());
 }
 
-std::string generateAutoIndex(const std::string &filePath, const Config &config)
+std::string generateAutoIndex(const std::string &filePath, Config &config)
 {
     DIR *dir;
     struct dirent *entry;
@@ -236,7 +242,7 @@ std::string getStatusMessage(int statusCode)
     }
 }
 
-std::string handleRequest(Client& client, const Config &config)
+std::string handleRequest(Client &client, Config &config)
 {
     (void)config;
 
@@ -245,43 +251,72 @@ std::string handleRequest(Client& client, const Config &config)
     client.setVersion(client.getVersion());
 
     Response response;
+    std::map<std::string, int> allowedMethods;
 
-    std::string filePath = client.getRoot() + client.getUri();
-    std::string filePathCpy = filePath;
     struct stat fileStat;
-    if (client.getMethod() == "GET")
+    if (config.isLocation(client.getUri()))
+    {
+        config.setRoot(1, client.getUri());
+        config.setServerName(1, client.getUri());
+        config.setErrorPage(1, client.getUri());
+        config.setIndex(1, client.getUri());
+        config.setAutoIndex(1, client.getUri());
+        config.setClientMaxBodySize(1, client.getUri());
+        config.setAllowedMethods(1, client.getUri());
+        allowedMethods = config.getAllowedMethods();
+    }
+    else
+    {
+        config.setRoot(0, "");
+        config.setServerName(0, "");
+        config.setErrorPage(0, "");
+        config.setIndex(0, "");
+        config.setAutoIndex(0, "");
+        config.setClientMaxBodySize(0, "");
+        config.setAllowedMethods(0, "");
+        allowedMethods = config.getAllowedMethods();
+    }
+    std::string filePath = config.getRoot() + client.getUri();
+    std::string filePathCpy = filePath;
+    if (client.getMethod() == "GET" && allowedMethods["GET"])
     {
         if (stat(filePath.c_str(), &fileStat) == 0) // Check if file/directory exists
         {
             if (S_ISDIR(fileStat.st_mode)) // Handle directories
             {
-                for (size_t i = 0; i < config.getIndex().size(); i++)
+                filePathCpy = config.getRoot() + client.getUri() + "/" + config.getIndex();
+                std::cout << "filePathCpy =>" << filePathCpy << std::endl;
+                if (access(filePathCpy.c_str(), F_OK) == 0) // File exists
                 {
-                    filePathCpy = client.getRoot() + client.getUri() + "/" + config.getIndex()[i];
-                    if (access(filePathCpy.c_str(), F_OK | R_OK) == 0) // File exists + readable, serve it
+                    if (access(filePathCpy.c_str(), R_OK) == 0) // File exists  + readable, serve it
                     {
-                        // std::cout << filePathCpy << std::endl;
-                        // std::cout << "Here==>" << getFileExtension(filePathCpy) << "=>" << config.getContentType(getFileExtension(filePathCpy)) << std::endl;
                         generateResponse(response, filePathCpy, config.getContentType(getFileExtension(filePathCpy)), "200", "OK", 0);
                         return getResponse(response);
                     }
+                    generateResponse(response, "./src/html/403.html", "text/html", "403", "Forbidden", 0);
+                    return getResponse(response);
                 }
                 if (config.getAutoIndex() == "on")
                 {
-                    // std::cout << "here lol ==========> " << filePath << "<==========" << std::endl;
                     std::string autoIndex = generateAutoIndex(filePath, config);
                     generateResponse(response, autoIndex, "text/html", "200", "OK", 1);
                     return getResponse(response);
                 }
                 else
                 {
-                    std::string statusCodeStr = config.getIndex()[config.getIndex().size() - 1];
-                    if (statusCodeStr[0] == '=')
+                    std::string statusCodeStr = config.getIndex();
+                    std::string errorCode = config.getErrorCode();
+                    std::string errorPage = config.getErrorPage(errorCode, "", 0);
+                    if (readFile(errorPage).size() == 0)
                     {
-                        int statusCode;
-                        std::istringstream(statusCodeStr.substr(1)) >> statusCode;
-                        std::string index = generateIndex(statusCode);
-                        generateResponse(response, index, "text/html", statusCodeStr.substr(1), getStatusMessage(statusCode), 1);
+                        generateResponse(response, "./src/html/404.html", "text/html", "404", "Not Found", 0);
+                        return getResponse(response);
+                    }
+                    else
+                    {
+                        int statusMessage;
+                        std::istringstream(errorCode) >> statusMessage;
+                        generateResponse(response, errorPage, "text/html", errorCode, getStatusMessage(statusMessage), 0);
                         return getResponse(response);
                     }
                     generateResponse(response, "./src/html/403.html", "text/html", "403", "Forbidden", 0);
@@ -290,7 +325,6 @@ std::string handleRequest(Client& client, const Config &config)
             }
             else // Handle files
             {
-                // std::cout << "Here==>" << getFileExtension(filePath) << "=>" << config.getContentType(getFileExtension(filePath)) << std::endl;
                 generateResponse(response, filePath, config.getContentType(getFileExtension(filePath)), "200", "OK", 0);
                 return getResponse(response);
             }
@@ -298,7 +332,6 @@ std::string handleRequest(Client& client, const Config &config)
         else // File/Directory doesn't exist
         {
             generateResponse(response, "./src/html/404.html", "text/html", "404", "Not Found", 0);
-            // std::cout << "Here body => " << client.getBody() << std::endl;
             return getResponse(response);
         }
     }
@@ -335,6 +368,11 @@ std::string handleRequest(Client& client, const Config &config)
     else if (client.getMethod() == "POST")
     {
         std::cout << "Body is ====> " << client.getBody() << std::endl;
+    }
+    else
+    {
+        generateResponse(response, "./src/html/405.html", "text/html", "405", "Method Not Allowed", 0);
+        return getResponse(response);
     }
     return "";
 }

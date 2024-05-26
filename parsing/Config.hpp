@@ -6,7 +6,7 @@
 /*   By: shmimi <shmimi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/23 22:15:53 by shmimi            #+#    #+#             */
-/*   Updated: 2024/05/16 20:24:17 by shmimi           ###   ########.fr       */
+/*   Updated: 2024/05/26 17:15:15 by shmimi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,33 +14,59 @@
 
 #include "../server/Server.hpp"
 #include "../parsing/Mime.hpp"
+#include "../parsing/Parser.hpp"
 
-class Config: public Mime
+class Client;
+
+class Config: public Mime, public Parser
 {
     private:
-        // std::string serverName;
-        // std::string root;
-        // std::vector<std::string> index;
-        // std::map<int, std::string> errorPage;
-        // std::string autoIndex;
-        // std::string _clientMaxBodySize;
-        std::string& filePath;
+        std::vector<int> port;
+        std::string serverName;
+        std::string root;
+        std::string index;
+        std::vector<std::string> errorPage;
+        std::string autoIndex;
+        std::string clientMaxBodySize;
+        std::map<std::string, int> allowedMethods;
+        
+        const std::string& filePath;
         static std::string nullFile; //Contains nothing
+
+        std::vector<std::pair<std::string, std::vector<std::string> > > globalDirectives;
+        std::vector<std::pair<std::string, std::pair<std::string, std::vector<std::string> > > > locations;
+
     public:
         Config();
-        Config(std::string& file);
+        Config(const std::string& file);
+        
         Config(const Config& cpy);
         Config& operator=(const Config& cpy);
 
         // std::string getFileContent(const std::string& filename) const;
+        
+        /************ SETTERS ************/
+        void setPort();
+        void setServerName(int isLocation, const std::string& uri);
+        void setRoot(int isLocation, const std::string& uri);
+        void setErrorPage(int isLocation, const std::string& uri);
+        void setIndex(int isLocation, const std::string& uri);
+        void setAutoIndex(int isLocation, const std::string& uri);
+        void setClientMaxBodySize(int isLocation, const std::string& uri);
+        void setAllowedMethods(int isLocation, const std::string &uri);
+        
+        /************ GETTERS ************/
+        const std::vector<int> getPort();
+        const std::string getServerName();
+        const std::string getRoot();
+        const std::vector<std::string> getErrorPage();
+        const std::string getIndex();
+        const std::string getAutoIndex();
+        const std::string getClientMaxBodySize();
+        const std::map<std::string, int> getAllowedMethods();
 
-        const std::vector<int> getPort() const;
-        const std::string getServerName() const;
-        const std::string getRoot() const;
-        const std::map<int, std::string> getErrorPage() const;
-        const std::vector<std::string> getIndex() const;
-        const std::string getAutoIndex() const;
-        int getClientMaxBodySize() const;
-
-        void resetFile() const;
+        std::string getErrorPage(const std::string& errorCode, const std::string& uri, int location);
+        std::string getErrorCode();
+        int isLocation(const std::string& uri);
+        void overrideConfig(std::string& uri, Client client);
 };

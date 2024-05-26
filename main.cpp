@@ -6,7 +6,7 @@
 /*   By: shmimi <shmimi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/21 15:10:14 by shmimi            #+#    #+#             */
-/*   Updated: 2024/05/16 21:34:54 by shmimi           ###   ########.fr       */
+/*   Updated: 2024/05/23 08:24:27 by shmimi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,6 +16,7 @@
 #include "utils.hpp"
 #include "client/clientHandler.hpp"
 #include "parsing/Mime.hpp"
+#include "parsing/Parser.hpp"
 
 std::vector<Server> setupServer(Config &config, std::vector<pollfd> &pollfds)
 {
@@ -53,7 +54,7 @@ std::string getRequest(int clientSocket)
     return request;
 }
 
-int handleNewConnection(Server &server, std::vector<pollfd> &pollfds, std::vector<Client> &clients)
+int handleNewConnection(Server &server, std::vector<pollfd> &pollfds, std::vector<Client> &clients, std::string& filePath)
 {
     int clientSocket = accept(server.getSockfd(), (struct sockaddr *)&server.getAddr(), &server.getAddrlen());
     if (clientSocket < 0)
@@ -64,7 +65,7 @@ int handleNewConnection(Server &server, std::vector<pollfd> &pollfds, std::vecto
     std::cout << "clientSocket: " << clientSocket << std::endl;
     pollfd socket = server.addClient(clientSocket, 0);
     pollfds.push_back(socket);
-    Client client(clientSocket);
+    Client client(clientSocket, filePath);
     clients.push_back(client);
     // std::cout << "New connection" << std::endl;
     return clientSocket;
@@ -75,17 +76,12 @@ int main(int ac, char **av)
     (void)av;
     (void)ac;
 
-    // std::cout << config.getClientMaxBodySize() << std::endl;
-
-    // if (!filePath.is_open())
-    // {
-    //     std::cerr << "Couldn't open config file!\n";
-    //     return 1;
-    // }
-    // else
     {
-        std::string filePath = "webserv.conf";
+        std::string filePath = "webserv.yml";
+        // Parser test(filePath);
         Config config(filePath);
+        // config.parse();
+        config.getAutoIndex();
         
         std::vector<pollfd> pollfds;
         std::vector<Client> clients;
@@ -94,7 +90,7 @@ int main(int ac, char **av)
         int clientSocket;
         std::string request;
 
-        std::string response = "HTTP/1.1 200 OK\nContent-Type: text/plain\nContent-Length: 12\n\nHello World!";
+        std::string response;// = "HTTP/1.1 200 OK\nContent-Type: text/plain\nContent-Length: 12\n\nHello World!";
         while (1)
         {
             try
@@ -111,7 +107,7 @@ int main(int ac, char **av)
                     {
                         if (pollfds[j].fd == servers[i].getSockfd() && pollfds[j].revents & POLLIN)
                         {
-                            clientSocket = handleNewConnection(servers[i], pollfds, clients);
+                            clientSocket = handleNewConnection(servers[i], pollfds, clients, filePath);
                         }
                     }
                     for (size_t k = 0; k < clients.size(); k++)

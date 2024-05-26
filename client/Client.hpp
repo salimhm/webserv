@@ -6,7 +6,7 @@
 /*   By: shmimi <shmimi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/31 02:36:33 by shmimi            #+#    #+#             */
-/*   Updated: 2024/05/16 18:14:18 by shmimi           ###   ########.fr       */
+/*   Updated: 2024/05/26 11:38:22 by shmimi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,6 +14,7 @@
 
 #include "../server/Server.hpp"
 #include "../parsing/Config.hpp"
+#include "../parsing/Parser.hpp"
 
 class Config;
 
@@ -27,7 +28,6 @@ struct Request
 class Client: public Config
 {
     private:
-        // int port;
         int clientFd;
         Request request;
 
@@ -36,7 +36,7 @@ class Client: public Config
         std::string _version;
 
     public:
-        Client(const int clientFd);
+        Client(const int clientFd, const std::string& filePath);
         /********** Getters *************/
         int getClientFd() const;
         // int getPort() const;

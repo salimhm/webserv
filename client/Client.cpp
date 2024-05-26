@@ -6,24 +6,19 @@
 /*   By: shmimi <shmimi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/25 00:04:21 by shmimi            #+#    #+#             */
-/*   Updated: 2024/05/16 18:19:55 by shmimi           ###   ########.fr       */
+/*   Updated: 2024/05/23 08:14:16 by shmimi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Client.hpp"
 
-Client::Client(const int clientFd) : clientFd(clientFd) {}
+Client::Client(const int clientFd, const std::string& filePath) : Config(filePath), clientFd(clientFd) {}
 
 
 int Client::getClientFd() const
 {
     return this->clientFd;
 }
-
-// int Client::getPort() const
-// {
-//     return this->port;
-// }
 
 const std::vector<std::string>& Client::getRequest() const
 {

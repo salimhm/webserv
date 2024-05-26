@@ -6,25 +6,35 @@
 /*   By: shmimi <shmimi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/23 22:19:25 by shmimi            #+#    #+#             */
-/*   Updated: 2024/05/16 21:40:55 by shmimi           ###   ########.fr       */
+/*   Updated: 2024/05/26 17:47:05 by shmimi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Config.hpp"
 #include <sstream>
+#include "../client/Client.hpp"
 
 std::string Config::nullFile;
 Config::Config() : filePath(nullFile) {}
 
-
-
-
-Config::Config(std::string &filePath) : filePath(filePath)
+Config::Config(const std::string &filePath) : Parser(filePath), filePath(filePath)
 {
-    std::ifstream file(filePath);
-    if (!file.is_open()) {
-        throw std::runtime_error("Failed to open config file");
-    }
+    // std::ifstream file(filePath);
+    // if (!file.is_open()) {
+    //     throw std::runtime_error("Failed to open config file");
+    // }
+    this->parse();
+    this->globalDirectives = this->getGlobalDirectives();
+    this->locations = this->getLocations();
+
+    setPort();
+    setServerName(0, "");
+    setRoot(0, "");
+    setErrorPage(0, "");
+    setIndex(0, "");
+    setAutoIndex(0, "");
+    setClientMaxBodySize(0, "");
+    // getPort();
 }
 
 Config::Config(const Config &cpy) : filePath(cpy.filePath)
@@ -38,170 +48,386 @@ Config &Config::operator=(const Config &cpy)
     return *this;
 }
 
-// void Config::resetFile() const
-// {
-//     file.clear();
-//     file.seekg(0, std::ios::beg);
-// }
-
-const std::vector<int> Config::getPort() const
+void Config::setPort()
 {
-    int port = 0;
-    std::ifstream file(filePath);
-    std::string line;
-    // resetFile();
     std::vector<int> ports;
-    while (getline(file, line))
+    // std::vector<std::pair<std::string, std::vector<std::string> > > globalDirectives = this->getGlobalDirectives();
+    for (size_t i = 0; i < globalDirectives.size(); i++)
     {
-        if (line.find("listen") != std::string::npos)
+        if (globalDirectives[i].first == "listen")
         {
-            line = line.substr(line.find(" ") + 1);
-            std::istringstream(line) >> port;
+            int port;
+            std::istringstream(globalDirectives[i].second[0]) >> port;
             ports.push_back(port);
         }
     }
-    file.close();
-    return ports;
+    this->port = ports;
+    // return ports;
 }
 
-const std::string Config::getServerName() const
+void Config::setServerName(int isLocation, const std::string &uri)
 {
-    std::ifstream file(filePath);
-    std::string line;
     std::string serverName;
-    // resetFile();
-    while (getline(file, line))
+    if (!isLocation)
     {
-        if (line.find("server_name") != std::string::npos)
+        for (size_t i = 0; i < globalDirectives.size(); i++)
         {
-            int pos = line.find(";");
-            serverName = line.substr(line.find(" ") + 1, pos - line.find(" ") - 1);
-            break;
+            if (globalDirectives[i].first == "server_name")
+            {
+                serverName = globalDirectives[i].second[0];
+            }
         }
     }
-    file.close();
-    return serverName;
+    else
+    {
+        for (size_t i = 0; i < locations.size(); i++)
+        {
+            if (this->locations[i].first == uri)
+            {
+                // std::cout << locations[i].second.first << std::endl;
+                if (this->locations[i].second.first == "server_name")
+                {
+                    for (size_t j = 0; j < this->locations[i].second.second.size(); j++)
+                    {
+                        // std::cout << this->locations[i].second.first << " ==> " << this->locations[i].second.second[j] << j << std::endl;
+                        this->serverName = this->locations[i].second.second[0];
+                        return;
+                    }
+                }
+            }
+        }
+    }
+    this->serverName = serverName;
 }
 
-const std::string Config::getRoot() const
+void Config::setRoot(int isLocation, const std::string &uri)
 {
-    std::ifstream file(filePath);
-    std::string line;
     std::string root;
-    // resetFile();
-    while (getline(file, line))
+    if (!isLocation)
     {
-        if (line.find("root") != std::string::npos)
+        for (size_t i = 0; i < this->globalDirectives.size(); i++)
         {
-            int pos = line.find(";");
-            root = line.substr(line.find(" ") + 1, pos - line.find(" ") - 1);
-            break;
-        }
-    }
-    // std::cout << "Rooooot " << root << std::endl;
-    file.close();
-    return root;
-}
-
-const std::vector<std::string> Config::getIndex() const
-{
-    std::ifstream file(filePath);
-    std::vector<std::string> index;
-    std::string line;
-    // resetFile();
-    while (getline(file, line))
-    {
-        if (line.find("index") != std::string::npos)
-        {
-            std::vector<std::string> splitted = split(line, " ");
-            for (size_t i = 1; i < splitted.size(); i++)
+            if (this->globalDirectives[i].first == "root")
             {
-                if (i == splitted.size() - 1)
-                {
-                    int pos = splitted[i].find(";");
-                    splitted[i] = splitted[i].substr(0, pos);
-                }
-                index.push_back(splitted[i]);
-                // std::cout << splitted[i] << std::endl;
-            }
-            break;
-        }
-    }
-    file.close();
-    return index;
-}
-
-const std::map<int, std::string> Config::getErrorPage() const
-{
-    std::ifstream file(filePath);
-    std::string line;
-    std::map<int, std::string> errorPage;
-    // resetFile();
-    while (getline(file, line))
-    {
-        if (line.find("error_page") != std::string::npos)
-        {
-            int error = 0;
-            std::vector<std::string> splitted = split(line, " ");
-            std::istringstream(splitted[1]) >> error;
-
-            for (size_t i = 1; i < splitted.size(); i++)
-            {
-                if (i == splitted.size() - 1)
-                {
-                    int pos = splitted[i].find(";");
-                    splitted[i] = splitted[i].substr(0, pos);
-                }
-                errorPage[error] = splitted[2];
+                root = this->globalDirectives[i].second[0];
             }
         }
     }
-    std::map<int, std::string>::const_iterator it = errorPage.begin();
-    while (it != errorPage.end())
+    else
     {
-        // std::cout << it->first << " => " << it->second << std::endl;
-        it++;
+        for (size_t i = 0; i < locations.size(); i++)
+        {
+            if (this->locations[i].first == uri)
+            {
+                // std::cout << locations[i].second.first << std::endl;
+                if (this->locations[i].second.first == "root")
+                {
+                    for (size_t j = 0; j < this->locations[i].second.second.size(); j++)
+                    {
+                        // std::cout << this->locations[i].second.first << " ==> " << this->locations[i].second.second[j] << j << std::endl;
+                        this->root = this->locations[i].second.second[0];
+                        return;
+                    }
+                }
+            }
+        }
     }
-    file.close();
-    return errorPage;
+    this->root = root;
 }
 
-const std::string Config::getAutoIndex() const
+void Config::setIndex(int isLocation, const std::string &uri)
 {
-    std::ifstream file(filePath);
-    std::string line;
+    std::string index;
+    if (!isLocation)
+    {
+        for (size_t i = 0; i < this->globalDirectives.size(); i++)
+        {
+            if (this->globalDirectives[i].first == "index")
+            {
+                index = this->globalDirectives[i].second[0];
+            }
+        }
+    }
+    else
+    {
+        for (size_t i = 0; i < locations.size(); i++)
+        {
+            if (this->locations[i].first == uri)
+            {
+                // std::cout << locations[i].second.first << std::endl;
+                if (this->locations[i].second.first == "index")
+                {
+                    for (size_t j = 0; j < this->locations[i].second.second.size(); j++)
+                    {
+                        // std::cout << this->locations[i].second.first << " ==> " << this->locations[i].second.second[j] << j << std::endl;
+                        this->index = this->locations[i].second.second[0];
+                        return;
+                    }
+                }
+            }
+        }
+    }
+    this->index = index;
+}
+
+void Config::setErrorPage(int isLocation, const std::string &uri)
+{
+    std::vector<std::string> errorPage;
+    if (!isLocation)
+    {
+        for (size_t i = 0; i < this->globalDirectives.size(); i++)
+        {
+            if (this->globalDirectives[i].first == "errorPage")
+            {
+                errorPage = this->globalDirectives[i].second;
+            }
+        }
+    }
+    else
+    {
+        for (size_t i = 0; i < locations.size(); i++)
+        {
+            if (this->locations[i].first == uri)
+            {
+                // std::cout << locations[i].second.first << std::endl;
+                if (this->locations[i].second.first == "errorPage")
+                {
+                    for (size_t j = 0; j < this->locations[i].second.second.size(); j++)
+                    {
+                        // std::cout << this->locations[i].second.first << " ==> " << this->locations[i].second.second[j] << j << std::endl;
+                        this->errorPage = this->locations[i].second.second;
+                        return;
+                    }
+                }
+            }
+        }
+    }
+    this->errorPage = errorPage;
+}
+
+void Config::setAutoIndex(int isLocation, const std::string &uri)
+{
     std::string autoIndex;
-    // resetFile();
-    while (getline(file, line))
+    if (!isLocation)
     {
-        if (line.find("autoindex") != std::string::npos)
+        for (size_t i = 0; i < this->globalDirectives.size(); i++)
         {
-            int pos = line.find(";");
-            autoIndex = line.substr(line.find(" ") + 1, pos - line.find(" ") - 1);
-            break;
+            if (this->globalDirectives[i].first == "autoindex")
+            {
+                autoIndex = this->globalDirectives[i].second[0];
+            }
         }
     }
-    file.close();
-    return autoIndex;
+    else
+    {
+        for (size_t i = 0; i < locations.size(); i++)
+        {
+            if (this->locations[i].first == uri)
+            {
+                // std::cout << locations[i].second.first << std::endl;
+                if (this->locations[i].second.first == "autoindex")
+                {
+                    for (size_t j = 0; j < this->locations[i].second.second.size(); j++)
+                    {
+                        // std::cout << this->locations[i].second.first << " ==> " << this->locations[i].second.second[j] << j << std::endl;
+                        this->autoIndex = this->locations[i].second.second[0];
+                        return;
+                    }
+                }
+            }
+        }
+    }
+    this->autoIndex = autoIndex;
 }
 
-int Config::getClientMaxBodySize() const
+void Config::setClientMaxBodySize(int isLocation, const std::string &uri)
 {
-    std::ifstream file(filePath);
-    std::string line;
-    int clientMaxBodySize = 0;
-    // resetFile();
-    while (getline(file, line))
+    std::string clientMaxBodySize;
+    if (!isLocation)
     {
-        if (line.find("client_max_body_size") != std::string::npos)
+        for (size_t i = 0; i < this->globalDirectives.size(); i++)
         {
-            // int pos = line.find(";");
-            std::vector<std::string> splitted = split(line, " ");
-            std::istringstream(splitted[1]) >> clientMaxBodySize;
-            std::cout << clientMaxBodySize << std::endl;
-            break;
+            if (this->globalDirectives[i].first == "client_max_body_size")
+            {
+                autoIndex = this->globalDirectives[i].second[0];
+            }
         }
     }
-    file.close();
-    return clientMaxBodySize;
+    else
+    {
+        for (size_t i = 0; i < locations.size(); i++)
+        {
+            if (this->locations[i].first == uri)
+            {
+                // std::cout << locations[i].second.first << std::endl;
+                if (this->locations[i].second.first == "client_max_body_size")
+                {
+                    for (size_t j = 0; j < this->locations[i].second.second.size(); j++)
+                    {
+                        // std::cout << this->locations[i].second.first << " ==> " << this->locations[i].second.second[j] << j << std::endl;
+                        this->autoIndex = this->locations[i].second.second[0];
+                        return;
+                    }
+                }
+            }
+        }
+    }
+    this->clientMaxBodySize = clientMaxBodySize;
 }
+
+const std::vector<int> Config::getPort()
+{
+    return this->port;
+}
+const std::string Config::getServerName()
+{
+    return this->serverName;
+}
+const std::string Config::getRoot()
+{
+    return this->root;
+}
+const std::vector<std::string> Config::getErrorPage()
+{
+    return this->errorPage;
+}
+const std::string Config::getIndex()
+{
+    return this->index;
+}
+const std::string Config::getAutoIndex()
+{
+    return this->autoIndex;
+}
+const std::string Config::getClientMaxBodySize()
+{
+    return this->clientMaxBodySize;
+}
+
+const std::map<std::string, int> Config::getAllowedMethods()
+{
+    return this->allowedMethods;
+}
+
+std::string Config::getErrorCode()
+{
+    for (size_t i = 0; i < this->globalDirectives.size(); i++)
+    {
+        if (this->globalDirectives[i].first == "error_page")
+        {
+            return this->globalDirectives[i].second[0];
+        }
+    }
+    return "";
+}
+
+std::string Config::getErrorPage(const std::string &errorCode, const std::string &uri, int isLocation)
+{
+    // int flag = 1;
+    if (isLocation)
+    {
+        for (size_t i = 0; i < locations.size(); i++)
+        {
+            if (this->locations[i].first == uri)
+            {
+                std::cout << locations[i].second.first << std::endl;
+                if (this->locations[i].second.first == "error_page")
+                {
+                    for (size_t j = 0; j < this->locations[i].second.second.size(); j++)
+                    {
+                        // std::cout << this->locations[i].second.first << " ==> " << this->locations[i].second.second[j] << std::endl;
+                        return this->locations[i].second.second[j + 1];
+                    }
+                }
+            }
+        }
+    }
+    else
+    {
+        for (size_t i = 0; i < this->globalDirectives.size(); i++)
+        {
+            if (this->globalDirectives[i].first == "error_page")
+            {
+                for (size_t j = 0; j < this->globalDirectives[i].second.size(); j++)
+                {
+                    if (this->globalDirectives[i].second[j] == errorCode)
+                        return this->globalDirectives[i].second[j + 1];
+                }
+            }
+        }
+    }
+    return "";
+}
+
+void Config::setAllowedMethods(int isLocation, const std::string &uri)
+{
+    this->allowedMethods.clear();
+    if (!isLocation)
+    {
+        for (size_t i = 0; i < this->globalDirectives.size(); i++)
+        {
+            if (this->globalDirectives[i].first == "allowed_methods")
+            {
+                // std::cout << "Global " << this->globalDirectives[i].second.size() << std::endl;
+                for (size_t j = 0; j < this->globalDirectives[i].second.size(); j++)
+                {
+                    this->allowedMethods[this->globalDirectives[i].second[j]] = 1;
+                }
+            }
+        }
+        return;
+        for (std::map<std::string, int>::iterator it = this->allowedMethods.begin(); it != this->allowedMethods.end(); it++)
+        {
+            std::cout << it->first << "==> " << it->second << std::endl;
+        }
+    }
+    else
+    {
+        for (size_t i = 0; i < locations.size(); i++)
+        {
+            std::cout << locations[i].second.first << std::endl;
+            if (this->locations[i].first == uri)
+            {
+                if (this->locations[i].second.first == "allowed_methods")
+                {
+                    // std::cout << "Local " << this->locations[i].second.second.size() << std::endl;
+                    for (size_t j = 0; j < this->locations[i].second.second.size(); j++)
+                    {
+                        // std::cout << this->locations[i].second.first << " ==> " << this->locations[i].second.second[j] << std::endl;
+                        this->allowedMethods[this->locations[i].second.second[j]] = 1;
+                    }
+                }
+            }
+        }
+        return;
+        for (std::map<std::string, int>::iterator it = this->allowedMethods.begin(); it != this->allowedMethods.end(); it++)
+        {
+            // std::cout << "Local\n";
+            std::cout << it->first << "==> " << it->second << std::endl;
+        }
+    }
+}
+
+int Config::isLocation(const std::string &uri)
+{
+    for (size_t i = 0; i < this->locations.size(); i++)
+    {
+        if (this->locations[i].first == uri)
+            return 1;
+    }
+    return 0;
+}
+
+// void Config::overrideConfig(std::string& uri, Client client)
+// {
+//     for (size_t i = 0; i < this->locations.size(); i++)
+//     {
+//         if (this->locations[i].first == uri)
+//         {
+//             for (size_t j = 0; j < this->locations[i].second.second.size(); j++)
+//             {
+//                 if (this->locations[i].second.first == )
+//             }
+//         }
+//     }
+// }
