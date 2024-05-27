@@ -6,7 +6,7 @@
 /*   By: shmimi <shmimi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/01 02:07:06 by shmimi            #+#    #+#             */
-/*   Updated: 2024/05/27 12:27:21 by shmimi           ###   ########.fr       */
+/*   Updated: 2024/05/27 17:28:59 by shmimi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -277,31 +277,31 @@ std::string handleRequest(Client &client, Config &config)
         config.setAllowedMethods(0, "");
         allowedMethods = config.getAllowedMethods();
     }
-    std::string filePath = config.getRoot() + client.getUri();
+    std::string root = config.getRoot();
+    std::string uri = client.getUri();
+    std::string index = config.getIndex();
+    std::string filePath = root + uri;
     std::string filePathCpy = filePath;
     std::string errorCode;
     std::string errorPage;
     int statusMessage = 0;
     if (config.getErrorPage().size() > 1)
     {
-        std::string errorCode = config.getErrorPage()[0];
-        std::string errorPage = config.getErrorPage()[1];
+        errorCode = config.getErrorPage()[0];
+        errorPage = config.getErrorPage()[1];
         int statusMessage;
         std::istringstream(errorCode) >> statusMessage;
     }
 
-    // std::cout << config.getErrorPage()[1] << std::endl;
-    // std::cout << "ROOOOOOOOOT " << config.getRoot() << std::endl;
-    std::cout << "URI => " << client.getUri() << std::endl;
-    // std::cout << "errorCode => " << config.getErrorPage()[0] << " ErrorPage => " << config.getErrorPage()[1] << std::endl;
     if (client.getMethod() == "GET" && allowedMethods["GET"])
     {
+        // std::cout << root << std::endl;
         if (stat(filePath.c_str(), &fileStat) == 0) // Check if file/directory exists
         {
         // std::cout << "FILEPATH " << filePath << "      " << filePathCpy << std::endl;
             if (S_ISDIR(fileStat.st_mode)) // Handle directories
             {
-                filePathCpy = config.getRoot() + client.getUri() + "/" + config.getIndex();
+                filePathCpy = root + uri + "/" + index;
                 // std::cout << "filePathCpy =>" << filePathCpy << std::endl;
                 if (access(filePathCpy.c_str(), F_OK) == 0) // File exists
                 {

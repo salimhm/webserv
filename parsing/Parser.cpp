@@ -6,7 +6,7 @@
 /*   By: shmimi <shmimi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/16 22:50:03 by shmimi            #+#    #+#             */
-/*   Updated: 2024/05/27 13:29:13 by shmimi           ###   ########.fr       */
+/*   Updated: 2024/05/27 15:49:16 by shmimi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -82,11 +82,7 @@ void Parser::setServerDirectives(std::vector<std::pair<std::string, std::vector<
         if (directives[j].first == "server.location")
         {
             std::string path = directives[j].second[0];
-            // if (path[path.size() - 1] != '/')
-            //     path[path.size() - 1] = '/';
-            // else
             path = normalizeUrl(path);
-            // std::cout << "PATH =>>>>>>>" << path << std::endl;
             j++;
             while (j < directives.size() && directives[j].first != "server.location")
             {

@@ -6,7 +6,7 @@
 /*   By: shmimi <shmimi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/23 22:15:53 by shmimi            #+#    #+#             */
-/*   Updated: 2024/05/26 17:15:15 by shmimi           ###   ########.fr       */
+/*   Updated: 2024/05/27 16:25:24 by shmimi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -68,5 +68,6 @@ class Config: public Mime, public Parser
         std::string getErrorPage(const std::string& errorCode, const std::string& uri, int location);
         std::string getErrorCode();
         int isLocation(const std::string& uri);
-        void overrideConfig(std::string& uri, Client client);
+        
+        size_t getConfigLocationIndex(const std::string &clientUri);
 };

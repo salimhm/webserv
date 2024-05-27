@@ -6,7 +6,7 @@
 /*   By: shmimi <shmimi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/23 22:19:25 by shmimi            #+#    #+#             */
-/*   Updated: 2024/05/27 12:32:54 by shmimi           ###   ########.fr       */
+/*   Updated: 2024/05/27 17:26:58 by shmimi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -103,6 +103,23 @@ void Config::setServerName(int isLocation, const std::string &uri)
     }
 }
 
+size_t Config::getConfigLocationIndex(const std::string &clientUri)
+{
+    std::vector<std::string> splittedClientUri = split(clientUri, "/");
+    splittedClientUri[1] = '/' + splittedClientUri[1] + '/';
+    for (size_t i = 0; i < this->locations.size(); i++)
+    {
+        std::vector<std::string> splitteduriConfig = split(this->locations[i].first, "/");
+        splitteduriConfig[1] = '/' + splitteduriConfig[1] + '/';
+        if (splitteduriConfig[1] == splittedClientUri[1] && clientUri.find(splitteduriConfig[1], 0) != std::string::npos)
+        {
+            // std::cout << "Here " << splitteduriConfig[1] << "    " << clientUri << std::endl;
+            return i;
+        }
+    }
+    return 0;
+}
+
 void Config::setRoot(int isLocation, const std::string &uri)
 {
     std::string rootGlobal = this->root;
@@ -119,9 +136,11 @@ void Config::setRoot(int isLocation, const std::string &uri)
     }
     else
     {
-        for (size_t i = 0; i < locations.size(); i++)
+        std::vector<std::string> splittedUri = split(uri, "/");
+        splittedUri[1] = '/' + splittedUri[1] + '/';
+        for (size_t i = 0; i < this->locations.size(); i++)
         {
-            if (this->locations[i].first == uri)
+            if (uri.find(splittedUri[1], 0) != std::string::npos && i >= getConfigLocationIndex(uri))
             {
                 if (this->locations[i].second.first == "root")
                 {
@@ -135,8 +154,7 @@ void Config::setRoot(int isLocation, const std::string &uri)
         }
         if (this->root.size() == 0)
         {
-            this->root = rootGlobal;
-            return;
+            this->root = rootGlobal; 
         }
     }
 }
@@ -157,9 +175,11 @@ void Config::setIndex(int isLocation, const std::string &uri)
     }
     else
     {
+        std::vector<std::string> splittedUri = split(uri, "/");
+        splittedUri[1] = '/' + splittedUri[1] + '/';
         for (size_t i = 0; i < locations.size(); i++)
         {
-            if (this->locations[i].first == uri)
+            if (uri.find(splittedUri[1], 0) != std::string::npos && i >= getConfigLocationIndex(uri))
             {
                 // std::cout << locations[i].second.first << std::endl;
                 if (this->locations[i].second.first == "index")
@@ -198,10 +218,9 @@ void Config::setErrorPage(int isLocation, const std::string &uri)
     {
         std::vector<std::string> splittedUri = split(uri, "/");
         splittedUri[1] = '/' + splittedUri[1] + '/';
-        std::cout << "splitted   " << splittedUri[1] << "      " << uri << std::endl;
         for (size_t i = 0; i < locations.size(); i++)
         {
-            if (this->locations[i].first == uri || uri.find(splittedUri[1], 0) != std::string::npos)
+            if (uri.find(splittedUri[1], 0) != std::string::npos && i >= getConfigLocationIndex(uri))
             {
                 if (this->locations[i].second.first == "error_page")
                 {
@@ -218,7 +237,6 @@ void Config::setErrorPage(int isLocation, const std::string &uri)
             this->errorPage = errorPageGlobal;
         }
     }
-    // std::cout << this->errorPage.size() << std::endl;
 }
 
 void Config::setAutoIndex(int isLocation, const std::string &uri)
@@ -237,16 +255,16 @@ void Config::setAutoIndex(int isLocation, const std::string &uri)
     }
     else
     {
+        std::vector<std::string> splittedUri = split(uri, "/");
+        splittedUri[1] = '/' + splittedUri[1] + '/';
         for (size_t i = 0; i < locations.size(); i++)
         {
-            if (this->locations[i].first == uri)
+            if (uri.find(splittedUri[1], 0) != std::string::npos && i >= getConfigLocationIndex(uri))
             {
-                // std::cout << locations[i].second.first << std::endl;
                 if (this->locations[i].second.first == "autoindex")
                 {
                     for (size_t j = 0; j < this->locations[i].second.second.size(); j++)
                     {
-                        // std::cout << this->locations[i].second.first << " ==> " << this->locations[i].second.second[j] << j << std::endl;
                         this->autoIndex = this->locations[i].second.second[0];
                         return;
                     }
@@ -273,16 +291,16 @@ void Config::setClientMaxBodySize(int isLocation, const std::string &uri)
     }
     else
     {
+        std::vector<std::string> splittedUri = split(uri, "/");
+        splittedUri[1] = '/' + splittedUri[1] + '/';
         for (size_t i = 0; i < locations.size(); i++)
         {
-            if (this->locations[i].first == uri)
+            if (uri.find(splittedUri[1], 0) != std::string::npos && i >= getConfigLocationIndex(uri))
             {
-                // std::cout << locations[i].second.first << std::endl;
                 if (this->locations[i].second.first == "client_max_body_size")
                 {
                     for (size_t j = 0; j < this->locations[i].second.second.size(); j++)
                     {
-                        // std::cout << this->locations[i].second.first << " ==> " << this->locations[i].second.second[j] << j << std::endl;
                         this->autoIndex = this->locations[i].second.second[0];
                         return;
                     }
@@ -349,25 +367,20 @@ void Config::setAllowedMethods(int isLocation, const std::string &uri)
         {
             if (this->globalDirectives[i].first == "allowed_methods")
             {
-                // std::cout << "Global " << this->globalDirectives[i].second.size() << std::endl;
                 for (size_t j = 0; j < this->globalDirectives[i].second.size(); j++)
                 {
                     this->allowedMethods[this->globalDirectives[i].second[j]] = 1;
                 }
             }
         }
-        return;
-        // for (std::map<std::string, int>::iterator it = this->allowedMethods.begin(); it != this->allowedMethods.end(); it++)
-        // {
-        //     std::cout << it->first << "==> " << it->second << std::endl;
-        // }
     }
     else
     {
+        std::vector<std::string> splittedUri = split(uri, "/");
+        splittedUri[1] = '/' + splittedUri[1] + '/';
         for (size_t i = 0; i < locations.size(); i++)
         {
-            // std::cout << locations[i].second.first << std::endl;
-            if (this->locations[i].first == uri)
+            if (uri.find(splittedUri[1], 0) != std::string::npos && i >= getConfigLocationIndex(uri))
             {
                 if (this->locations[i].second.first == "allowed_methods")
                 {
@@ -381,49 +394,23 @@ void Config::setAllowedMethods(int isLocation, const std::string &uri)
         if (this->allowedMethods.size() == 0)
         {
             this->allowedMethods = allowedMethodsGlobal;
-            return;
         }
-        // for (std::map<std::string, int>::iterator it = this->allowedMethods.begin(); it != this->allowedMethods.end(); it++)
-        // {
-        //     // std::cout << "Local\n";
-        //     std::cout << it->first << "==> " << it->second << std::endl;
-        // }
     }
 }
 
 int Config::isLocation(const std::string &uri)
 {
     std::string uriCheck;
-    // std::vector<std::string> splittedUri = split(uri, "/");
-    // std::cout << "splitted   " << splittedUri[1] << "   " << uri << "   " << this->locations[0].first << std::endl;
-    
-    // for (size_t i = 0; i < this->locations.size(); i++)
-    // {
-        
-    // }
     for (size_t i = 0; i < this->locations.size(); i++)
     {
+        std::vector<std::string> splittedUri = split(this->locations[i].first, "/");
+        splittedUri[1] = '/' + splittedUri[1] + '/';
         uriCheck += this->locations[i].first;
-        if (this->locations[i].first == uri || this->locations[i].first == uriCheck)
+        if (uri.find(splittedUri[1], 0) != std::string::npos)
         {
-            std::cout  << "uriCheck   " << uriCheck << "  " << this->locations[i].first << std::endl;
             return 1;
         }
         uriCheck.clear();
     }
     return 0;
 }
-
-// void Config::overrideConfig(std::string& uri, Client client)
-// {
-//     for (size_t i = 0; i < this->locations.size(); i++)
-//     {
-//         if (this->locations[i].first == uri)
-//         {
-//             for (size_t j = 0; j < this->locations[i].second.second.size(); j++)
-//             {
-//                 if (this->locations[i].second.first == )
-//             }
-//         }
-//     }
-// }

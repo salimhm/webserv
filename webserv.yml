@@ -3,14 +3,21 @@ server :
 		server_name hh
 		root /Users/shmimi/Desktop/webserv/html
 		index index.html
-		error_page 403 ./src/html/403.html
+		error_page 404 ./src/html/404.html
 		allowed_methods GET POST DELETE
 
   server.location /hehe/ :
-		error_page 500 ./src/html/500.html
+		error_page 403 ./src/html/403.html
 		upload_dir	/lol
 		allowed_methods GET POST
+		autoindex on
 
   server.location /images//ds//df :
+		error_page 500 ./src/html/500.html
+		root /local/path/2
+		autoindex off
+  server.location /wtf//ds//df :
+		root /lolllll
+		error_page 405 ./src/html/405.html
 		root /local/path/2
 		autoindex off
