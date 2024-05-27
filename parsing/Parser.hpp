@@ -6,7 +6,7 @@
 /*   By: shmimi <shmimi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/16 22:48:15 by shmimi            #+#    #+#             */
-/*   Updated: 2024/05/23 07:14:32 by shmimi           ###   ########.fr       */
+/*   Updated: 2024/05/27 13:08:44 by shmimi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,6 +15,7 @@
 #include <fstream>
 #include <vector>
 #include <map>
+#include <sstream>
 
 class Parser
 {

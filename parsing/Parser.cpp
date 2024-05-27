@@ -6,7 +6,7 @@
 /*   By: shmimi <shmimi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/16 22:50:03 by shmimi            #+#    #+#             */
-/*   Updated: 2024/05/27 12:28:44 by shmimi           ###   ########.fr       */
+/*   Updated: 2024/05/27 13:29:13 by shmimi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,7 +28,7 @@ Parser::Parser(const std::string &filePath) : filePath(filePath)
     this->allowedDirectives.push_back("autoindex"); //2
     this->allowedDirectives.push_back("client_max_body_size"); //2
     this->allowedDirectives.push_back("upload_dir"); //2
-    this->allowedDirectives.push_back("allowed_methods"); //0-4
+    this->allowedDirectives.push_back("allowed_methods"); //1-4
 }
 
 std::string getServers(std::ifstream &file)
@@ -99,6 +99,17 @@ void Parser::setServerDirectives(std::vector<std::pair<std::string, std::vector<
 
 int Parser::checkSyntax(std::vector<std::pair<std::string, std::vector<std::string> > > directives)
 {
+    int listenFound = 0;
+    for (size_t i = 0; i < directives.size(); i++)
+    {
+        if (directives[i].first == "listen")
+        {
+            listenFound++;
+            break;
+        }
+    }
+    if (!listenFound)
+        return 1;
     for (size_t i = 0; i < directives.size(); i++)
     {
         for (size_t j = 0; j < this->allowedDirectives.size(); j++)
@@ -109,6 +120,52 @@ int Parser::checkSyntax(std::vector<std::pair<std::string, std::vector<std::stri
             {
                 return 1;
             }
+        }
+        if (directives[i].first == "listen")
+        {
+            if (directives[i].second.size() < 1 || directives[i].second.size() > 1)
+                return 1;
+            int port;
+            std::stringstream num;
+            std::istringstream(directives[i].second[0]) >> port;
+            num << port;
+            if (directives[i].second[0].size() != num.str().size())
+                return 1;
+        }
+        if (directives[i].first == "server_name")
+        {
+            if (directives[i].second.size() < 1 || directives[i].second.size() > 1)
+                return 1;
+        }
+        if (directives[i].first == "root")
+        {
+            if (directives[i].second.size() < 1 || directives[i].second.size() > 1)
+                return 1;
+        }
+        if (directives[i].first == "index")
+        {
+            if (directives[i].second.size() < 1 || directives[i].second.size() > 1)
+                return 1;
+        }
+        if (directives[i].first == "error_page")
+        {
+            if (directives[i].second.size() < 2 || directives[i].second.size() > 2)
+                return 1;
+        }
+        if (directives[i].first == "autoindex")
+        {
+            if (directives[i].second.size() < 1 || directives[i].second.size() > 1)
+                return 1;
+        }
+        if (directives[i].first == "allowed_methods")
+        {
+            if (directives[i].second.size() < 1 || directives[i].second.size() > 3)
+                return 1;
+        }
+        if (directives[i].first == "upload_dir")
+        {
+            if (directives[i].second.size() < 1 || directives[i].second.size() > 1)
+                return 1;
         }
     }
     return 0;

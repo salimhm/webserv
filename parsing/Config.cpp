@@ -6,7 +6,7 @@
 /*   By: shmimi <shmimi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/23 22:19:25 by shmimi            #+#    #+#             */
-/*   Updated: 2024/05/27 12:05:28 by shmimi           ###   ########.fr       */
+/*   Updated: 2024/05/27 12:32:54 by shmimi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,7 +52,6 @@ Config &Config::operator=(const Config &cpy)
 void Config::setPort()
 {
     std::vector<int> ports;
-    // std::vector<std::pair<std::string, std::vector<std::string> > > globalDirectives = this->getGlobalDirectives();
     for (size_t i = 0; i < globalDirectives.size(); i++)
     {
         if (globalDirectives[i].first == "listen")
@@ -63,7 +62,6 @@ void Config::setPort()
         }
     }
     this->port = ports;
-    // return ports;
 }
 
 void Config::setServerName(int isLocation, const std::string &uri)

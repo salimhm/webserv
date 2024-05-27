@@ -4,14 +4,12 @@ server :
 		root /Users/shmimi/Desktop/webserv/html
 		index index.html
 		error_page 403 ./src/html/403.html
-		autoindex off
 		allowed_methods GET POST DELETE
 
   server.location /hehe/ :
 		error_page 500 ./src/html/500.html
 		upload_dir	/lol
 		allowed_methods GET POST
-		autoindex off
 
   server.location /images//ds//df :
 		root /local/path/2
