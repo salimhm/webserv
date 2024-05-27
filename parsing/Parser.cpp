@@ -6,7 +6,7 @@
 /*   By: shmimi <shmimi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/16 22:50:03 by shmimi            #+#    #+#             */
-/*   Updated: 2024/05/26 11:07:52 by shmimi           ###   ########.fr       */
+/*   Updated: 2024/05/27 12:28:44 by shmimi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,15 +20,15 @@ Parser::~Parser(){}
 Parser::Parser(const std::string &filePath) : filePath(filePath)
 {
     // std::cout << filePath << std::endl;
-    this->allowedDirectives.push_back("listen");
-    this->allowedDirectives.push_back("server_name");
-    this->allowedDirectives.push_back("root");
-    this->allowedDirectives.push_back("index");
-    this->allowedDirectives.push_back("error_page");
-    this->allowedDirectives.push_back("autoindex");
-    this->allowedDirectives.push_back("client_max_body_size");
-    this->allowedDirectives.push_back("upload_dir");
-    this->allowedDirectives.push_back("allowed_methods");
+    this->allowedDirectives.push_back("listen"); //2
+    this->allowedDirectives.push_back("server_name"); //2
+    this->allowedDirectives.push_back("root"); //2
+    this->allowedDirectives.push_back("index"); //2
+    this->allowedDirectives.push_back("error_page"); //3
+    this->allowedDirectives.push_back("autoindex"); //2
+    this->allowedDirectives.push_back("client_max_body_size"); //2
+    this->allowedDirectives.push_back("upload_dir"); //2
+    this->allowedDirectives.push_back("allowed_methods"); //0-4
 }
 
 std::string getServers(std::ifstream &file)

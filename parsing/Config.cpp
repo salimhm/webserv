@@ -6,7 +6,7 @@
 /*   By: shmimi <shmimi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/23 22:19:25 by shmimi            #+#    #+#             */
-/*   Updated: 2024/05/26 17:47:05 by shmimi           ###   ########.fr       */
+/*   Updated: 2024/05/27 12:05:28 by shmimi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,6 +34,7 @@ Config::Config(const std::string &filePath) : Parser(filePath), filePath(filePat
     setIndex(0, "");
     setAutoIndex(0, "");
     setClientMaxBodySize(0, "");
+    setAllowedMethods(0, "");
     // getPort();
 }
 
@@ -67,14 +68,15 @@ void Config::setPort()
 
 void Config::setServerName(int isLocation, const std::string &uri)
 {
-    std::string serverName;
+    std::string serverNameGlobal = this->serverName;
+    this->serverName.clear();
     if (!isLocation)
     {
         for (size_t i = 0; i < globalDirectives.size(); i++)
         {
             if (globalDirectives[i].first == "server_name")
             {
-                serverName = globalDirectives[i].second[0];
+                this->serverName = globalDirectives[i].second[0];
             }
         }
     }
@@ -96,20 +98,24 @@ void Config::setServerName(int isLocation, const std::string &uri)
                 }
             }
         }
+        if (this->serverName.size() == 0)
+        {
+            this->serverName = serverNameGlobal;
+        }
     }
-    this->serverName = serverName;
 }
 
 void Config::setRoot(int isLocation, const std::string &uri)
 {
-    std::string root;
+    std::string rootGlobal = this->root;
+    this->root.clear();
     if (!isLocation)
     {
         for (size_t i = 0; i < this->globalDirectives.size(); i++)
         {
             if (this->globalDirectives[i].first == "root")
             {
-                root = this->globalDirectives[i].second[0];
+                this->root = this->globalDirectives[i].second[0];
             }
         }
     }
@@ -119,32 +125,35 @@ void Config::setRoot(int isLocation, const std::string &uri)
         {
             if (this->locations[i].first == uri)
             {
-                // std::cout << locations[i].second.first << std::endl;
                 if (this->locations[i].second.first == "root")
                 {
                     for (size_t j = 0; j < this->locations[i].second.second.size(); j++)
                     {
-                        // std::cout << this->locations[i].second.first << " ==> " << this->locations[i].second.second[j] << j << std::endl;
                         this->root = this->locations[i].second.second[0];
                         return;
                     }
                 }
             }
         }
+        if (this->root.size() == 0)
+        {
+            this->root = rootGlobal;
+            return;
+        }
     }
-    this->root = root;
 }
 
 void Config::setIndex(int isLocation, const std::string &uri)
 {
-    std::string index;
+    std::string indexGlobal = this->index;
+    this->index.clear();
     if (!isLocation)
     {
         for (size_t i = 0; i < this->globalDirectives.size(); i++)
         {
             if (this->globalDirectives[i].first == "index")
             {
-                index = this->globalDirectives[i].second[0];
+                this->index = this->globalDirectives[i].second[0];
             }
         }
     }
@@ -166,55 +175,65 @@ void Config::setIndex(int isLocation, const std::string &uri)
                 }
             }
         }
+        if (this->index.size() == 0)
+        {
+            this->index = indexGlobal;
+        }
     }
-    this->index = index;
 }
 
 void Config::setErrorPage(int isLocation, const std::string &uri)
 {
-    std::vector<std::string> errorPage;
+    std::vector<std::string> errorPageGlobal = this->errorPage;
+    this->errorPage.clear();
     if (!isLocation)
     {
         for (size_t i = 0; i < this->globalDirectives.size(); i++)
         {
-            if (this->globalDirectives[i].first == "errorPage")
+            if (this->globalDirectives[i].first == "error_page")
             {
-                errorPage = this->globalDirectives[i].second;
+                this->errorPage = this->globalDirectives[i].second;
             }
         }
     }
     else
     {
+        std::vector<std::string> splittedUri = split(uri, "/");
+        splittedUri[1] = '/' + splittedUri[1] + '/';
+        std::cout << "splitted   " << splittedUri[1] << "      " << uri << std::endl;
         for (size_t i = 0; i < locations.size(); i++)
         {
-            if (this->locations[i].first == uri)
+            if (this->locations[i].first == uri || uri.find(splittedUri[1], 0) != std::string::npos)
             {
-                // std::cout << locations[i].second.first << std::endl;
-                if (this->locations[i].second.first == "errorPage")
+                if (this->locations[i].second.first == "error_page")
                 {
                     for (size_t j = 0; j < this->locations[i].second.second.size(); j++)
                     {
-                        // std::cout << this->locations[i].second.first << " ==> " << this->locations[i].second.second[j] << j << std::endl;
                         this->errorPage = this->locations[i].second.second;
                         return;
                     }
                 }
             }
         }
+        if (this->errorPage.size() == 0)
+        {
+            this->errorPage = errorPageGlobal;
+        }
     }
-    this->errorPage = errorPage;
+    // std::cout << this->errorPage.size() << std::endl;
 }
 
 void Config::setAutoIndex(int isLocation, const std::string &uri)
 {
-    std::string autoIndex;
+    std::string autoIndexGlobal = this->autoIndex;
+    this->autoIndex.clear();
     if (!isLocation)
     {
         for (size_t i = 0; i < this->globalDirectives.size(); i++)
         {
             if (this->globalDirectives[i].first == "autoindex")
             {
-                autoIndex = this->globalDirectives[i].second[0];
+                this->autoIndex = this->globalDirectives[i].second[0];
             }
         }
     }
@@ -236,8 +255,9 @@ void Config::setAutoIndex(int isLocation, const std::string &uri)
                 }
             }
         }
+        if (this->autoIndex.size() == 0)
+            this->autoIndex = autoIndexGlobal;
     }
-    this->autoIndex = autoIndex;
 }
 
 void Config::setClientMaxBodySize(int isLocation, const std::string &uri)
@@ -321,46 +341,9 @@ std::string Config::getErrorCode()
     return "";
 }
 
-std::string Config::getErrorPage(const std::string &errorCode, const std::string &uri, int isLocation)
-{
-    // int flag = 1;
-    if (isLocation)
-    {
-        for (size_t i = 0; i < locations.size(); i++)
-        {
-            if (this->locations[i].first == uri)
-            {
-                std::cout << locations[i].second.first << std::endl;
-                if (this->locations[i].second.first == "error_page")
-                {
-                    for (size_t j = 0; j < this->locations[i].second.second.size(); j++)
-                    {
-                        // std::cout << this->locations[i].second.first << " ==> " << this->locations[i].second.second[j] << std::endl;
-                        return this->locations[i].second.second[j + 1];
-                    }
-                }
-            }
-        }
-    }
-    else
-    {
-        for (size_t i = 0; i < this->globalDirectives.size(); i++)
-        {
-            if (this->globalDirectives[i].first == "error_page")
-            {
-                for (size_t j = 0; j < this->globalDirectives[i].second.size(); j++)
-                {
-                    if (this->globalDirectives[i].second[j] == errorCode)
-                        return this->globalDirectives[i].second[j + 1];
-                }
-            }
-        }
-    }
-    return "";
-}
-
 void Config::setAllowedMethods(int isLocation, const std::string &uri)
 {
+    std::map<std::string, int> allowedMethodsGlobal = this->allowedMethods;
     this->allowedMethods.clear();
     if (!isLocation)
     {
@@ -376,44 +359,59 @@ void Config::setAllowedMethods(int isLocation, const std::string &uri)
             }
         }
         return;
-        for (std::map<std::string, int>::iterator it = this->allowedMethods.begin(); it != this->allowedMethods.end(); it++)
-        {
-            std::cout << it->first << "==> " << it->second << std::endl;
-        }
+        // for (std::map<std::string, int>::iterator it = this->allowedMethods.begin(); it != this->allowedMethods.end(); it++)
+        // {
+        //     std::cout << it->first << "==> " << it->second << std::endl;
+        // }
     }
     else
     {
         for (size_t i = 0; i < locations.size(); i++)
         {
-            std::cout << locations[i].second.first << std::endl;
+            // std::cout << locations[i].second.first << std::endl;
             if (this->locations[i].first == uri)
             {
                 if (this->locations[i].second.first == "allowed_methods")
                 {
-                    // std::cout << "Local " << this->locations[i].second.second.size() << std::endl;
                     for (size_t j = 0; j < this->locations[i].second.second.size(); j++)
                     {
-                        // std::cout << this->locations[i].second.first << " ==> " << this->locations[i].second.second[j] << std::endl;
                         this->allowedMethods[this->locations[i].second.second[j]] = 1;
                     }
                 }
             }
         }
-        return;
-        for (std::map<std::string, int>::iterator it = this->allowedMethods.begin(); it != this->allowedMethods.end(); it++)
+        if (this->allowedMethods.size() == 0)
         {
-            // std::cout << "Local\n";
-            std::cout << it->first << "==> " << it->second << std::endl;
+            this->allowedMethods = allowedMethodsGlobal;
+            return;
         }
+        // for (std::map<std::string, int>::iterator it = this->allowedMethods.begin(); it != this->allowedMethods.end(); it++)
+        // {
+        //     // std::cout << "Local\n";
+        //     std::cout << it->first << "==> " << it->second << std::endl;
+        // }
     }
 }
 
 int Config::isLocation(const std::string &uri)
 {
+    std::string uriCheck;
+    // std::vector<std::string> splittedUri = split(uri, "/");
+    // std::cout << "splitted   " << splittedUri[1] << "   " << uri << "   " << this->locations[0].first << std::endl;
+    
+    // for (size_t i = 0; i < this->locations.size(); i++)
+    // {
+        
+    // }
     for (size_t i = 0; i < this->locations.size(); i++)
     {
-        if (this->locations[i].first == uri)
+        uriCheck += this->locations[i].first;
+        if (this->locations[i].first == uri || this->locations[i].first == uriCheck)
+        {
+            std::cout  << "uriCheck   " << uriCheck << "  " << this->locations[i].first << std::endl;
             return 1;
+        }
+        uriCheck.clear();
     }
     return 0;
 }

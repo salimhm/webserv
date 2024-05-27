@@ -6,7 +6,7 @@
 /*   By: shmimi <shmimi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/01 02:07:06 by shmimi            #+#    #+#             */
-/*   Updated: 2024/05/26 17:50:59 by shmimi           ###   ########.fr       */
+/*   Updated: 2024/05/27 12:27:21 by shmimi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -254,6 +254,7 @@ std::string handleRequest(Client &client, Config &config)
     std::map<std::string, int> allowedMethods;
 
     struct stat fileStat;
+    
     if (config.isLocation(client.getUri()))
     {
         config.setRoot(1, client.getUri());
@@ -278,14 +279,30 @@ std::string handleRequest(Client &client, Config &config)
     }
     std::string filePath = config.getRoot() + client.getUri();
     std::string filePathCpy = filePath;
+    std::string errorCode;
+    std::string errorPage;
+    int statusMessage = 0;
+    if (config.getErrorPage().size() > 1)
+    {
+        std::string errorCode = config.getErrorPage()[0];
+        std::string errorPage = config.getErrorPage()[1];
+        int statusMessage;
+        std::istringstream(errorCode) >> statusMessage;
+    }
+
+    // std::cout << config.getErrorPage()[1] << std::endl;
+    // std::cout << "ROOOOOOOOOT " << config.getRoot() << std::endl;
+    std::cout << "URI => " << client.getUri() << std::endl;
+    // std::cout << "errorCode => " << config.getErrorPage()[0] << " ErrorPage => " << config.getErrorPage()[1] << std::endl;
     if (client.getMethod() == "GET" && allowedMethods["GET"])
     {
         if (stat(filePath.c_str(), &fileStat) == 0) // Check if file/directory exists
         {
+        // std::cout << "FILEPATH " << filePath << "      " << filePathCpy << std::endl;
             if (S_ISDIR(fileStat.st_mode)) // Handle directories
             {
                 filePathCpy = config.getRoot() + client.getUri() + "/" + config.getIndex();
-                std::cout << "filePathCpy =>" << filePathCpy << std::endl;
+                // std::cout << "filePathCpy =>" << filePathCpy << std::endl;
                 if (access(filePathCpy.c_str(), F_OK) == 0) // File exists
                 {
                     if (access(filePathCpy.c_str(), R_OK) == 0) // File exists  + readable, serve it
@@ -304,9 +321,6 @@ std::string handleRequest(Client &client, Config &config)
                 }
                 else
                 {
-                    std::string statusCodeStr = config.getIndex();
-                    std::string errorCode = config.getErrorCode();
-                    std::string errorPage = config.getErrorPage(errorCode, "", 0);
                     if (readFile(errorPage).size() == 0)
                     {
                         generateResponse(response, "./src/html/404.html", "text/html", "404", "Not Found", 0);
@@ -314,8 +328,6 @@ std::string handleRequest(Client &client, Config &config)
                     }
                     else
                     {
-                        int statusMessage;
-                        std::istringstream(errorCode) >> statusMessage;
                         generateResponse(response, errorPage, "text/html", errorCode, getStatusMessage(statusMessage), 0);
                         return getResponse(response);
                     }
@@ -331,11 +343,16 @@ std::string handleRequest(Client &client, Config &config)
         }
         else // File/Directory doesn't exist
         {
+            if (errorCode.size() == 3)
+            {
+                generateResponse(response, errorPage, "text/html", errorCode, getStatusMessage(statusMessage), 0);
+                return getResponse(response);
+            }
             generateResponse(response, "./src/html/404.html", "text/html", "404", "Not Found", 0);
             return getResponse(response);
         }
     }
-    else if (client.getMethod() == "DELETE")
+    else if (client.getMethod() == "DELETE" && allowedMethods["DELETE"])
     {
         if (stat(filePath.c_str(), &fileStat) == 0) // check if file/directory exists
         {
@@ -365,7 +382,7 @@ std::string handleRequest(Client &client, Config &config)
             return getResponse(response);
         }
     }
-    else if (client.getMethod() == "POST")
+    else if (client.getMethod() == "POST" && allowedMethods["POST"])
     {
         std::cout << "Body is ====> " << client.getBody() << std::endl;
     }
