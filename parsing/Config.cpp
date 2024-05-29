@@ -6,7 +6,7 @@
 /*   By: shmimi <shmimi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/23 22:19:25 by shmimi            #+#    #+#             */
-/*   Updated: 2024/05/27 17:26:58 by shmimi           ###   ########.fr       */
+/*   Updated: 2024/05/29 17:53:14 by shmimi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,15 +26,16 @@ Config::Config(const std::string &filePath) : Parser(filePath), filePath(filePat
     this->parse();
     this->globalDirectives = this->getGlobalDirectives();
     this->locations = this->getLocations();
+    this->servers = this->getAllServers();
 
     setPort();
-    setServerName(0, "");
-    setRoot(0, "");
-    setErrorPage(0, "");
-    setIndex(0, "");
-    setAutoIndex(0, "");
-    setClientMaxBodySize(0, "");
-    setAllowedMethods(0, "");
+    // setServerName(0, "");
+    // setRoot(0, "");
+    // setErrorPage(0, "");
+    // setIndex(0, "");
+    // setAutoIndex(0, "");
+    // setClientMaxBodySize(0, "");
+    // setAllowedMethods(0, "");
     // getPort();
 }
 
@@ -47,6 +48,22 @@ Config &Config::operator=(const Config &cpy)
     if (this == &cpy)
         return *this;
     return *this;
+}
+
+size_t Config::getPortIndex(const std::string &port)
+{
+    (void)port;
+    for (size_t i = 0; i < this->servers.size(); i++)
+    {
+        for (size_t j = 0; j < this->servers[i].size(); j++)
+        {
+            if (this->servers[i][j].first == "listen" && this->servers[i][j].second[0] == port)
+            {
+                return i;
+            }
+        }
+    }
+    return 0;
 }
 
 void Config::setPort()
@@ -64,73 +81,80 @@ void Config::setPort()
     this->port = ports;
 }
 
-void Config::setServerName(int isLocation, const std::string &uri)
+void Config::setServerName(int isLocation, const std::string &uri, const std::string& port)
 {
-    std::string serverNameGlobal = this->serverName;
     this->serverName.clear();
+    
+    size_t portIndex = getPortIndex(port);
     if (!isLocation)
     {
-        for (size_t i = 0; i < globalDirectives.size(); i++)
+        for (size_t j = 0; j < this->servers[portIndex].size(); j++)
         {
-            if (globalDirectives[i].first == "server_name")
+            if (this->servers[portIndex][j].first == "server_name")
             {
-                this->serverName = globalDirectives[i].second[0];
+                this->serverName = this->servers[portIndex][j].second[0];
+                return;
             }
         }
     }
     else
     {
-        for (size_t i = 0; i < locations.size(); i++)
+        std::vector<std::string> splittedUri = split(uri, "/");
+        splittedUri[1] = '/' + splittedUri[1] + '/';
+        for (size_t j = 0; j < this->servers[portIndex].size(); j++)
         {
-            if (this->locations[i].first == uri)
+            if (this->servers[portIndex][j].first == "server.location" && this->servers[portIndex][j].second[0].find(splittedUri[1], 0) != std::string::npos)
             {
-                // std::cout << locations[i].second.first << std::endl;
-                if (this->locations[i].second.first == "server_name")
+                size_t k = j + 1;
+                while(k < this->servers[portIndex].size() && this->servers[portIndex][k].first != "server.location")
                 {
-                    for (size_t j = 0; j < this->locations[i].second.second.size(); j++)
+                    if (k < this->servers[portIndex].size() && this->servers[portIndex][k].first == "server_name")
                     {
-                        // std::cout << this->locations[i].second.first << " ==> " << this->locations[i].second.second[j] << j << std::endl;
-                        this->serverName = this->locations[i].second.second[0];
+                        this->serverName = this->servers[portIndex][k].second[0];
                         return;
                     }
+                    k++;
                 }
             }
-        }
+        } 
         if (this->serverName.size() == 0)
         {
-            this->serverName = serverNameGlobal;
+            setClientMaxBodySize(0, "", port);
         }
     }
 }
 
-size_t Config::getConfigLocationIndex(const std::string &clientUri)
+size_t Config::getConfigLocationIndex(const std::string &clientUri, const std::string& port)
 {
+    size_t i = getPortIndex(port);
     std::vector<std::string> splittedClientUri = split(clientUri, "/");
     splittedClientUri[1] = '/' + splittedClientUri[1] + '/';
-    for (size_t i = 0; i < this->locations.size(); i++)
+    for (; i < this->locations.size(); i++)
     {
         std::vector<std::string> splitteduriConfig = split(this->locations[i].first, "/");
         splitteduriConfig[1] = '/' + splitteduriConfig[1] + '/';
-        if (splitteduriConfig[1] == splittedClientUri[1] && clientUri.find(splitteduriConfig[1], 0) != std::string::npos)
-        {
-            // std::cout << "Here " << splitteduriConfig[1] << "    " << clientUri << std::endl;
-            return i;
-        }
+            if (splitteduriConfig[1] == splittedClientUri[1] && clientUri.find(splitteduriConfig[1], 0) != std::string::npos)
+            {
+                return i;
+            }
     }
-    return 0;
+    return i;
 }
 
-void Config::setRoot(int isLocation, const std::string &uri)
+void Config::setRoot(int isLocation, const std::string &uri, const std::string& port)
 {
-    std::string rootGlobal = this->root;
     this->root.clear();
+    
+    size_t portIndex = getPortIndex(port);
     if (!isLocation)
     {
-        for (size_t i = 0; i < this->globalDirectives.size(); i++)
+        for (size_t j = 0; j < this->servers[portIndex].size(); j++)
         {
-            if (this->globalDirectives[i].first == "root")
+            if (this->servers[portIndex][j].first == "root")
             {
-                this->root = this->globalDirectives[i].second[0];
+                this->root = this->servers[portIndex][j].second[0];
+                std::cout << "this->root " << this->root << std::endl; 
+                return;
             }
         }
     }
@@ -138,38 +162,44 @@ void Config::setRoot(int isLocation, const std::string &uri)
     {
         std::vector<std::string> splittedUri = split(uri, "/");
         splittedUri[1] = '/' + splittedUri[1] + '/';
-        for (size_t i = 0; i < this->locations.size(); i++)
+        for (size_t j = 0; j < this->servers[portIndex].size(); j++)
         {
-            if (uri.find(splittedUri[1], 0) != std::string::npos && i >= getConfigLocationIndex(uri))
+            if (this->servers[portIndex][j].first == "server.location" && this->servers[portIndex][j].second[0].find(splittedUri[1], 0) != std::string::npos)
             {
-                if (this->locations[i].second.first == "root")
+                size_t k = j + 1;
+                while(k < this->servers[portIndex].size() && this->servers[portIndex][k].first != "server.location")
                 {
-                    for (size_t j = 0; j < this->locations[i].second.second.size(); j++)
+                    if (k < this->servers[portIndex].size() && this->servers[portIndex][k].first == "root")
                     {
-                        this->root = this->locations[i].second.second[0];
+                        this->root = this->servers[portIndex][k].second[0];
+                        std::cout << "this->root " << this->root << std::endl; 
                         return;
                     }
+                    k++;
                 }
             }
-        }
+        } 
         if (this->root.size() == 0)
         {
-            this->root = rootGlobal; 
+            setRoot(0, "", port);
         }
     }
+    std::cout << "this->root " << this->root << std::endl; 
 }
 
-void Config::setIndex(int isLocation, const std::string &uri)
+void Config::setIndex(int isLocation, const std::string &uri, const std::string& port)
 {
-    std::string indexGlobal = this->index;
     this->index.clear();
+    
+    size_t portIndex = getPortIndex(port);
     if (!isLocation)
     {
-        for (size_t i = 0; i < this->globalDirectives.size(); i++)
+        for (size_t j = 0; j < this->servers[portIndex].size(); j++)
         {
-            if (this->globalDirectives[i].first == "index")
+            if (this->servers[portIndex][j].first == "index")
             {
-                this->index = this->globalDirectives[i].second[0];
+                this->index = this->servers[portIndex][j].second[0];
+                return;
             }
         }
     }
@@ -177,40 +207,42 @@ void Config::setIndex(int isLocation, const std::string &uri)
     {
         std::vector<std::string> splittedUri = split(uri, "/");
         splittedUri[1] = '/' + splittedUri[1] + '/';
-        for (size_t i = 0; i < locations.size(); i++)
+        for (size_t j = 0; j < this->servers[portIndex].size(); j++)
         {
-            if (uri.find(splittedUri[1], 0) != std::string::npos && i >= getConfigLocationIndex(uri))
+            if (this->servers[portIndex][j].first == "server.location" && this->servers[portIndex][j].second[0].find(splittedUri[1], 0) != std::string::npos)
             {
-                // std::cout << locations[i].second.first << std::endl;
-                if (this->locations[i].second.first == "index")
+                size_t k = j + 1;
+                while(k < this->servers[portIndex].size() && this->servers[portIndex][k].first != "server.location")
                 {
-                    for (size_t j = 0; j < this->locations[i].second.second.size(); j++)
+                    if (k < this->servers[portIndex].size() && this->servers[portIndex][k].first == "index")
                     {
-                        // std::cout << this->locations[i].second.first << " ==> " << this->locations[i].second.second[j] << j << std::endl;
-                        this->index = this->locations[i].second.second[0];
+                        this->index = this->servers[portIndex][k].second[0];
                         return;
                     }
+                    k++;
                 }
             }
-        }
+        } 
         if (this->index.size() == 0)
         {
-            this->index = indexGlobal;
+            setIndex(0, "", port);
         }
     }
 }
 
-void Config::setErrorPage(int isLocation, const std::string &uri)
+void Config::setErrorPage(int isLocation, const std::string &uri, const std::string& port)
 {
-    std::vector<std::string> errorPageGlobal = this->errorPage;
     this->errorPage.clear();
+    
+    size_t portIndex = getPortIndex(port);
     if (!isLocation)
     {
-        for (size_t i = 0; i < this->globalDirectives.size(); i++)
+        for (size_t j = 0; j < this->servers[portIndex].size(); j++)
         {
-            if (this->globalDirectives[i].first == "error_page")
+            if (this->servers[portIndex][j].first == "error_page")
             {
-                this->errorPage = this->globalDirectives[i].second;
+                this->errorPage = this->servers[portIndex][j].second;
+                return;
             }
         }
     }
@@ -218,38 +250,42 @@ void Config::setErrorPage(int isLocation, const std::string &uri)
     {
         std::vector<std::string> splittedUri = split(uri, "/");
         splittedUri[1] = '/' + splittedUri[1] + '/';
-        for (size_t i = 0; i < locations.size(); i++)
+        for (size_t j = 0; j < this->servers[portIndex].size(); j++)
         {
-            if (uri.find(splittedUri[1], 0) != std::string::npos && i >= getConfigLocationIndex(uri))
+            if (this->servers[portIndex][j].first == "server.location" && this->servers[portIndex][j].second[0].find(splittedUri[1], 0) != std::string::npos)
             {
-                if (this->locations[i].second.first == "error_page")
+                size_t k = j + 1;
+                while(k < this->servers[portIndex].size() && this->servers[portIndex][k].first != "server.location")
                 {
-                    for (size_t j = 0; j < this->locations[i].second.second.size(); j++)
+                    if (k < this->servers[portIndex].size() && this->servers[portIndex][k].first == "error_page")
                     {
-                        this->errorPage = this->locations[i].second.second;
+                        this->errorPage = this->servers[portIndex][k].second;
                         return;
                     }
+                    k++;
                 }
             }
-        }
+        } 
         if (this->errorPage.size() == 0)
         {
-            this->errorPage = errorPageGlobal;
+            setErrorPage(0, "", port);
         }
     }
 }
 
-void Config::setAutoIndex(int isLocation, const std::string &uri)
+void Config::setAutoIndex(int isLocation, const std::string &uri, const std::string& port)
 {
-    std::string autoIndexGlobal = this->autoIndex;
     this->autoIndex.clear();
+    
+    size_t portIndex = getPortIndex(port);
     if (!isLocation)
     {
-        for (size_t i = 0; i < this->globalDirectives.size(); i++)
+        for (size_t j = 0; j < this->servers[portIndex].size(); j++)
         {
-            if (this->globalDirectives[i].first == "autoindex")
+            if (this->servers[portIndex][j].first == "autoindex")
             {
-                this->autoIndex = this->globalDirectives[i].second[0];
+                this->autoIndex = this->servers[portIndex][j].second[0];
+                return;
             }
         }
     }
@@ -257,35 +293,42 @@ void Config::setAutoIndex(int isLocation, const std::string &uri)
     {
         std::vector<std::string> splittedUri = split(uri, "/");
         splittedUri[1] = '/' + splittedUri[1] + '/';
-        for (size_t i = 0; i < locations.size(); i++)
+        for (size_t j = 0; j < this->servers[portIndex].size(); j++)
         {
-            if (uri.find(splittedUri[1], 0) != std::string::npos && i >= getConfigLocationIndex(uri))
+            if (this->servers[portIndex][j].first == "server.location" && this->servers[portIndex][j].second[0].find(splittedUri[1], 0) != std::string::npos)
             {
-                if (this->locations[i].second.first == "autoindex")
+                size_t k = j + 1;
+                while(k < this->servers[portIndex].size() && this->servers[portIndex][k].first != "server.location")
                 {
-                    for (size_t j = 0; j < this->locations[i].second.second.size(); j++)
+                    if (k < this->servers[portIndex].size() && this->servers[portIndex][k].first == "autoindex")
                     {
-                        this->autoIndex = this->locations[i].second.second[0];
+                        this->autoIndex = this->servers[portIndex][k].second[0];
                         return;
                     }
+                    k++;
                 }
             }
-        }
+        } 
         if (this->autoIndex.size() == 0)
-            this->autoIndex = autoIndexGlobal;
+        {
+            setAutoIndex(0, "", port);
+        }
     }
 }
 
-void Config::setClientMaxBodySize(int isLocation, const std::string &uri)
+void Config::setClientMaxBodySize(int isLocation, const std::string &uri, const std::string& port)
 {
-    std::string clientMaxBodySize;
+    this->clientMaxBodySize.clear();
+    
+    size_t portIndex = getPortIndex(port);
     if (!isLocation)
     {
-        for (size_t i = 0; i < this->globalDirectives.size(); i++)
+        for (size_t j = 0; j < this->servers[portIndex].size(); j++)
         {
-            if (this->globalDirectives[i].first == "client_max_body_size")
+            if (this->servers[portIndex][j].first == "client_max_body_size")
             {
-                autoIndex = this->globalDirectives[i].second[0];
+                this->clientMaxBodySize = this->servers[portIndex][j].second[0];
+                return;
             }
         }
     }
@@ -293,22 +336,70 @@ void Config::setClientMaxBodySize(int isLocation, const std::string &uri)
     {
         std::vector<std::string> splittedUri = split(uri, "/");
         splittedUri[1] = '/' + splittedUri[1] + '/';
-        for (size_t i = 0; i < locations.size(); i++)
+        for (size_t j = 0; j < this->servers[portIndex].size(); j++)
         {
-            if (uri.find(splittedUri[1], 0) != std::string::npos && i >= getConfigLocationIndex(uri))
+            if (this->servers[portIndex][j].first == "server.location" && this->servers[portIndex][j].second[0].find(splittedUri[1], 0) != std::string::npos)
             {
-                if (this->locations[i].second.first == "client_max_body_size")
+                size_t k = j + 1;
+                while(k < this->servers[portIndex].size() && this->servers[portIndex][k].first != "server.location")
                 {
-                    for (size_t j = 0; j < this->locations[i].second.second.size(); j++)
+                    if (k < this->servers[portIndex].size() && this->servers[portIndex][k].first == "client_max_body_size")
                     {
-                        this->autoIndex = this->locations[i].second.second[0];
+                        this->clientMaxBodySize = this->servers[portIndex][k].second[0];
                         return;
                     }
+                    k++;
                 }
+            }
+        } 
+        if (this->clientMaxBodySize.size() == 0)
+        {
+            setClientMaxBodySize(0, "", port);
+        }
+    }
+}
+
+void Config::setUploadDir(int isLocation, const std::string &uri, const std::string& port)
+{
+    this->uploadDir.clear();
+    
+    size_t portIndex = getPortIndex(port);
+    if (!isLocation)
+    {
+        for (size_t j = 0; j < this->servers[portIndex].size(); j++)
+        {
+            if (this->servers[portIndex][j].first == "upload_dir")
+            {
+                this->uploadDir = this->servers[portIndex][j].second[0];
+                return;
             }
         }
     }
-    this->clientMaxBodySize = clientMaxBodySize;
+    else
+    {
+        std::vector<std::string> splittedUri = split(uri, "/");
+        splittedUri[1] = '/' + splittedUri[1] + '/';
+        for (size_t j = 0; j < this->servers[portIndex].size(); j++)
+        {
+            if (this->servers[portIndex][j].first == "server.location" && this->servers[portIndex][j].second[0].find(splittedUri[1], 0) != std::string::npos)
+            {
+                size_t k = j + 1;
+                while(k < this->servers[portIndex].size() && this->servers[portIndex][k].first != "server.location")
+                {
+                    if (k < this->servers[portIndex].size() && this->servers[portIndex][k].first == "upload_dir")
+                    {
+                        this->uploadDir = this->servers[portIndex][k].second[0];
+                        return;
+                    }
+                    k++;
+                }
+            }
+        } 
+        if (this->uploadDir.size() == 0)
+        {
+            setUploadDir(0, "", port);
+        }
+    }
 }
 
 const std::vector<int> Config::getPort()
@@ -357,7 +448,7 @@ std::string Config::getErrorCode()
     return "";
 }
 
-void Config::setAllowedMethods(int isLocation, const std::string &uri)
+void Config::setAllowedMethods(int isLocation, const std::string &uri, const std::string& port)
 {
     std::map<std::string, int> allowedMethodsGlobal = this->allowedMethods;
     this->allowedMethods.clear();
@@ -380,7 +471,7 @@ void Config::setAllowedMethods(int isLocation, const std::string &uri)
         splittedUri[1] = '/' + splittedUri[1] + '/';
         for (size_t i = 0; i < locations.size(); i++)
         {
-            if (uri.find(splittedUri[1], 0) != std::string::npos && i >= getConfigLocationIndex(uri))
+            if (uri.find(splittedUri[1], 0) != std::string::npos && i >= getConfigLocationIndex(uri, port))
             {
                 if (this->locations[i].second.first == "allowed_methods")
                 {
@@ -398,19 +489,18 @@ void Config::setAllowedMethods(int isLocation, const std::string &uri)
     }
 }
 
-int Config::isLocation(const std::string &uri)
+int Config::isLocation(const std::string &uri, const std::string& port)
 {
-    std::string uriCheck;
-    for (size_t i = 0; i < this->locations.size(); i++)
+    size_t index = getPortIndex(port);
+    std::vector<std::string> splittedUri = split(uri, "/");
+    splittedUri[1] = '/' + splittedUri[1] + '/';
+    for (size_t j = 0; j < this->servers[index].size(); j++)
     {
-        std::vector<std::string> splittedUri = split(this->locations[i].first, "/");
-        splittedUri[1] = '/' + splittedUri[1] + '/';
-        uriCheck += this->locations[i].first;
-        if (uri.find(splittedUri[1], 0) != std::string::npos)
+        if (this->servers[index][j].first == "server.location" && this->servers[index][j].second[0].find(splittedUri[1], 0) != std::string::npos)
         {
+            std::cout << "uri " << splittedUri[1] << "    " << this->servers[index][j].second[0] << std::endl;
             return 1;
         }
-        uriCheck.clear();
     }
     return 0;
 }

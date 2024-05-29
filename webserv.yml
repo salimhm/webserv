@@ -1,23 +1,38 @@
 server :
-		listen	8000
+		listen	80
 		server_name hh
 		root /Users/shmimi/Desktop/webserv/html
-		index index.html
+		index index.htmls
 		error_page 404 ./src/html/404.html
+		client_max_body_size 5
 		allowed_methods GET POST DELETE
 
-  server.location /hehe/ :
+		upload_dir	/global
+  server.location   /hehe/ :
 		error_page 403 ./src/html/403.html
 		upload_dir	/lol
 		allowed_methods GET POST
 		autoindex on
 
-  server.location /images//ds//df :
-		error_page 500 ./src/html/500.html
-		root /local/path/2
-		autoindex off
   server.location /wtf//ds//df :
-		root /lolllll
+		upload_dir	/wtfff
+		error_page 405 ./src/html/405.html
+		root /local/path/2
+		client_max_body_size 600
+		autoindex off
+server :
+		listen	8000
+		server_name hh
+		root /Users/shmimi/Desktop/webserv/html/
+		index index.html
+		error_page 404 ./src/html/404.html
+		allowed_methods GET POST DELETE
+
+  server.location   /hehe/:
+		error_page 403 ./src/html/403.html
+		autoindex on
+
+  server.location /xd//ds//df :
 		error_page 405 ./src/html/405.html
 		root /local/path/2
 		autoindex off

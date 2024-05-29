@@ -6,7 +6,7 @@
 /*   By: shmimi <shmimi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/16 22:50:03 by shmimi            #+#    #+#             */
-/*   Updated: 2024/05/27 15:49:16 by shmimi           ###   ########.fr       */
+/*   Updated: 2024/05/29 17:32:29 by shmimi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,7 +19,6 @@ Parser::~Parser(){}
 
 Parser::Parser(const std::string &filePath) : filePath(filePath)
 {
-    // std::cout << filePath << std::endl;
     this->allowedDirectives.push_back("listen"); //2
     this->allowedDirectives.push_back("server_name"); //2
     this->allowedDirectives.push_back("root"); //2
@@ -66,15 +65,24 @@ std::vector<std::pair<std::string, std::vector<std::string> > > Parser::getGloba
     return this->globalDirectives;
 }
 
+std::vector<std::vector<std::pair<std::string, std::vector<std::string> > > > Parser::getAllServers()
+{
+    return this->allServers;
+}
+
 void Parser::setServerDirectives(std::vector<std::pair<std::string, std::vector<std::string> > > directives)
 {
+    std::vector<std::string> keys;
     size_t i = 0;
     for (; i < directives.size(); i++)
     {
         if (directives[i].first == "server.location")
             break;
         this->globalDirectives.push_back(std::make_pair(directives[i].first, directives[i].second));
+        keys.push_back(directives[i].first);
     }
+    checkGlobalDuplicates(keys);
+    keys.clear();
     size_t j;
     for (; i < directives.size(); i++)
     {
@@ -87,25 +95,17 @@ void Parser::setServerDirectives(std::vector<std::pair<std::string, std::vector<
             while (j < directives.size() && directives[j].first != "server.location")
             {
                 this->locations.push_back(std::make_pair(path, std::make_pair(directives[j].first, directives[j].second)));
+                keys.push_back(directives[j].first);
                 j++;
             }
+            checkLocationsDuplicates(keys);
+            keys.clear();
         }
     }
 }
 
 int Parser::checkSyntax(std::vector<std::pair<std::string, std::vector<std::string> > > directives)
 {
-    int listenFound = 0;
-    for (size_t i = 0; i < directives.size(); i++)
-    {
-        if (directives[i].first == "listen")
-        {
-            listenFound++;
-            break;
-        }
-    }
-    if (!listenFound)
-        return 1;
     for (size_t i = 0; i < directives.size(); i++)
     {
         for (size_t j = 0; j < this->allowedDirectives.size(); j++)
@@ -163,8 +163,71 @@ int Parser::checkSyntax(std::vector<std::pair<std::string, std::vector<std::stri
             if (directives[i].second.size() < 1 || directives[i].second.size() > 1)
                 return 1;
         }
+        if (directives[i].first == "client_max_body_size")
+        {
+            if (directives[i].second.size() < 1 || directives[i].second.size() > 1)
+                return 1;
+        }
     }
     return 0;
+}
+
+void Parser::checkGlobalDuplicates(const std::vector<std::string>& keys)
+{
+    int listen = 0;
+    int serverName = 0;
+    int root = 0;
+    int index = 0;
+    int errorPage = 0;
+    int allowedMethods = 0;
+    int uploadDir = 0;
+    for (size_t i = 0; i < keys.size(); i++)
+    {
+        if (keys[i] == "listen")
+            listen++;
+        if (keys[i] == "server_name")
+            serverName++;
+        if (keys[i] == "root")
+            root++;
+        if (keys[i] == "index")
+            index++;
+        if (keys[i] == "error_page")
+            errorPage++;
+        if (keys[i] == "allowed_methods")
+            allowedMethods++;
+        if (keys[i] == "upload_dir")
+            uploadDir++;
+    }
+    if (listen > 1 || serverName > 1 || root > 1 || index > 1 || errorPage > 1 || allowedMethods > 1 || uploadDir > 1)
+        throw std::runtime_error("Syntax error!");
+}
+
+void Parser::checkLocationsDuplicates(const std::vector<std::string>& keys)
+{
+    int root = 0;
+    int index = 0;
+    int errorPage = 0;
+    int allowedMethods = 0;
+    int uploadDir = 0;
+    for (size_t i = 0; i < keys.size(); i++)
+    {
+        if (keys[i] == "listen")
+            throw std::runtime_error("Syntax error!");
+        if (keys[i] == "server_name")
+            throw std::runtime_error("Syntax error!");
+        if (keys[i] == "root")
+            root++;
+        if (keys[i] == "index")
+            index++;
+        if (keys[i] == "error_page")
+            errorPage++;
+        if (keys[i] == "allowed_methods")
+            allowedMethods++;
+        if (keys[i] == "upload_dir")
+            uploadDir++;
+    }
+    if (root > 1 || index > 1 || errorPage > 1 || allowedMethods > 1 || uploadDir > 1)
+        throw std::runtime_error("Syntax error!");
 }
 
 std::vector<std::pair<std::string, std::vector<std::string> > > Parser::parseServer(std::string &serverBlock)
@@ -173,13 +236,22 @@ std::vector<std::pair<std::string, std::vector<std::string> > > Parser::parseSer
     std::vector<std::pair<std::string, std::pair<std::string, std::vector<std::string> > > > locations;
 
     serverBlock = trim(serverBlock);
-    // std::cout << "SERVER BLOCK " << std::endl;
-    // std::cout << serverBlock << std::endl;
     std::vector<std::string> serverBlocks = split(serverBlock, "\n");
     size_t i = 0;
     while (serverBlocks.size())
     {
         std::vector<std::string> directives = split(serverBlocks[i], " ");
+        if (directives[0] == "server.location")
+        {
+            if ((directives.size() == 2 && directives[1][directives[1].length() - 1] != ':') || (directives.size() == 3 && directives[2] != ":"))
+                throw std::runtime_error("Syntax error!");
+            else if (directives.size() == 2 && directives[1][directives[1].length() - 2] == ':')
+                throw std::runtime_error("Syntax error!");
+            else if (directives.size() == 3 && (directives[2].size() > 1 && directives[2][directives[2].length() - 2] == ':'))
+                throw std::runtime_error("Syntax error!");
+            else if (directives.size() == 3 && directives[1][directives[1].length() - 1] == ':' && directives[2] == ":")
+                throw std::runtime_error("Syntax error!");
+        }
         if (directives.size() >= 2)
         {
             std::string directive = directives[0];
@@ -188,7 +260,6 @@ std::vector<std::pair<std::string, std::vector<std::string> > > Parser::parseSer
         }
         else if (directives.size() < 2 && directives[0].size() != 0)
         {
-            // std::cout << directives[0].size() << std::endl;
             throw std::runtime_error("Syntax error!");
         }
         serverBlocks.erase(serverBlocks.begin());
@@ -220,6 +291,14 @@ void Parser::parse()
             break;
         block += line;
         serverBlocks = split(line, " ");
+        if ((serverBlocks[0] == "server:" && serverBlocks.size() == 2) || (serverBlocks[0] == "server" && serverBlocks.size() < 2))
+            throw std::runtime_error("Syntax error!");
+        else if (serverBlocks[0][serverBlocks[0].size() - 1] == ':' && serverBlocks[0][serverBlocks[0].size() - 2] == ':')
+            throw std::runtime_error("Syntax error!");
+        else if (serverBlocks.size() == 2 && (serverBlocks[1][serverBlocks[1].size() - 1] == ':' && serverBlocks[1][serverBlocks[1].size() - 2] == ':'))
+            throw std::runtime_error("Syntax error!");
+        else if (serverBlocks.size() > 2)
+            throw std::runtime_error("Syntax error!");
         if (serverBlocks[0] == "server" || serverBlocks[0] == "server:")
         {
             file.seekg(serverPos);
@@ -229,14 +308,16 @@ void Parser::parse()
         }
     }
     std::cout << "SIZE " << servers.size() << std::endl;
+    if (servers.size() == 0)
+        throw std::runtime_error("Syntax error!");
     for (size_t i = 0; i < servers.size(); i++)
     {
-        // std::cout << servers[i] << std::endl;
         if (!servers[i].size())
             throw std::runtime_error("Syntax error!");
         serverDirectives = parseServer(servers[i]);
         allServers.push_back(serverDirectives);
         if (checkSyntax(serverDirectives) == 1)
-            throw std::runtime_error("Syntax error!");        
+            throw std::runtime_error("Syntax error!");
     }
+    this->allServers = allServers;
 }

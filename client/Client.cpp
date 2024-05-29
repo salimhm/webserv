@@ -6,7 +6,7 @@
 /*   By: shmimi <shmimi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/25 00:04:21 by shmimi            #+#    #+#             */
-/*   Updated: 2024/05/23 08:14:16 by shmimi           ###   ########.fr       */
+/*   Updated: 2024/05/28 15:58:20 by shmimi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -48,6 +48,11 @@ const std::string& Client::getUri() const
 const std::string& Client::getVersion() const
 {
     return this->request.startLine[2];
+}
+
+const std::string& Client::getPort() const
+{
+    return this->request.port;
 }
 
 void Client::setMethod(const std::string &method)

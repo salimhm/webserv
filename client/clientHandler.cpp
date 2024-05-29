@@ -6,7 +6,7 @@
 /*   By: shmimi <shmimi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/01 02:07:06 by shmimi            #+#    #+#             */
-/*   Updated: 2024/05/27 17:28:59 by shmimi           ###   ########.fr       */
+/*   Updated: 2024/05/29 17:52:35 by shmimi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -64,6 +64,25 @@ struct Request parseRequest(const std::string &request)
                 break;
             headers.push_back(std::make_pair(key, value));
         }
+
+        for (size_t i = 0; i < headers.size(); i++)
+        {
+            if (headers[i].first == "\r\nHost")
+            {
+                size_t pos = headers[i].second.find(":");
+                if (pos != std::string::npos)
+                {
+                    httpRequest.port = headers[i].second.substr(pos + 1);
+                    break;
+                }
+                else
+                {
+                    httpRequest.port = "80";
+                    break;
+                }
+            }
+        }
+        // std::cout << "Port => " << httpRequest.port << "  " << httpRequest.port.size() << std::endl;
 
         // std::cout << "************ Printing headers *************";
         // for (size_t i = 0; i < headers.size(); i++)
@@ -255,26 +274,30 @@ std::string handleRequest(Client &client, Config &config)
 
     struct stat fileStat;
     
-    if (config.isLocation(client.getUri()))
+    if (config.isLocation(client.getUri(), client.getPort()))
     {
-        config.setRoot(1, client.getUri());
-        config.setServerName(1, client.getUri());
-        config.setErrorPage(1, client.getUri());
-        config.setIndex(1, client.getUri());
-        config.setAutoIndex(1, client.getUri());
-        config.setClientMaxBodySize(1, client.getUri());
-        config.setAllowedMethods(1, client.getUri());
-        allowedMethods = config.getAllowedMethods();
+		std::cout << "Location found\n";
+        config.setRoot(1, client.getUri(), client.getPort());
+        // config.setServerName(1, client.getUri(), client.getPort());
+        config.setErrorPage(1, client.getUri(), client.getPort());
+        config.setIndex(1, client.getUri(), client.getPort());
+        config.setAutoIndex(1, client.getUri(), client.getPort());
+        config.setClientMaxBodySize(1, client.getUri(), client.getPort());
+        config.setUploadDir(1, client.getUri(), client.getPort());
+        config.setAllowedMethods(1, client.getUri(), client.getPort());
+        allowedMethods = config.getAllowedMethods(), client.getPort();
     }
     else
     {
-        config.setRoot(0, "");
-        config.setServerName(0, "");
-        config.setErrorPage(0, "");
-        config.setIndex(0, "");
-        config.setAutoIndex(0, "");
-        config.setClientMaxBodySize(0, "");
-        config.setAllowedMethods(0, "");
+		std::cout << "Location NOT found\n";
+        config.setRoot(0, "", client.getPort());
+        // config.setServerName(0, "");
+        config.setErrorPage(0, "", client.getPort());
+        config.setIndex(0, "", client.getPort());
+        config.setAutoIndex(0, "", client.getPort());
+        config.setClientMaxBodySize(0, "", client.getPort());
+        config.setUploadDir(0, "", client.getPort());
+        config.setAllowedMethods(0, "", client.getPort());
         allowedMethods = config.getAllowedMethods();
     }
     std::string root = config.getRoot();
@@ -292,6 +315,13 @@ std::string handleRequest(Client &client, Config &config)
         int statusMessage;
         std::istringstream(errorCode) >> statusMessage;
     }
+
+    // std::cout << "Port => " << client.getPort() << std::endl;
+	// std::cout << "Root => " << root << std::endl;
+	// std::cout << "autoIndex => " << config.getAutoIndex() << std::endl;
+	// std::cout << "index => " << index << std::endl;
+	// std::cout << "filePath => " << filePath << std::endl;
+	// std::cout << "Errorcode => " << errorCode << std::endl;
 
     if (client.getMethod() == "GET" && allowedMethods["GET"])
     {
