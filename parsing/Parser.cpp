@@ -6,7 +6,7 @@
 /*   By: shmimi <shmimi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/16 22:50:03 by shmimi            #+#    #+#             */
-/*   Updated: 2024/05/29 17:32:29 by shmimi           ###   ########.fr       */
+/*   Updated: 2024/05/30 10:40:50 by shmimi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -90,7 +90,11 @@ void Parser::setServerDirectives(std::vector<std::pair<std::string, std::vector<
         if (directives[j].first == "server.location")
         {
             std::string path = directives[j].second[0];
+            size_t pos = path.find(":", 0);
+            if (pos != std::string::npos)
+                path = path.substr(0, pos);
             path = normalizeUrl(path);
+            // std::cout << "Path ======= " << path << std::endl;
             j++;
             while (j < directives.size() && directives[j].first != "server.location")
             {
@@ -129,6 +133,16 @@ int Parser::checkSyntax(std::vector<std::pair<std::string, std::vector<std::stri
                 return 1;
         }
         if (directives[i].first == "server_name")
+        {
+            if (directives[i].second.size() < 1 || directives[i].second.size() > 1)
+                return 1;
+        }
+        if (directives[i].first == "autoindex")
+        {
+            if (directives[i].second.size() < 1 || directives[i].second.size() > 1)
+                return 1;
+        }
+        if (directives[i].first == "client_max_body_size")
         {
             if (directives[i].second.size() < 1 || directives[i].second.size() > 1)
                 return 1;
@@ -175,12 +189,14 @@ int Parser::checkSyntax(std::vector<std::pair<std::string, std::vector<std::stri
 void Parser::checkGlobalDuplicates(const std::vector<std::string>& keys)
 {
     int listen = 0;
+    int autoIndex = 0;
     int serverName = 0;
     int root = 0;
     int index = 0;
     int errorPage = 0;
     int allowedMethods = 0;
     int uploadDir = 0;
+    int clientMaxBodySize = 0;
     for (size_t i = 0; i < keys.size(); i++)
     {
         if (keys[i] == "listen")
@@ -197,8 +213,12 @@ void Parser::checkGlobalDuplicates(const std::vector<std::string>& keys)
             allowedMethods++;
         if (keys[i] == "upload_dir")
             uploadDir++;
+        if (keys[i] == "autoindex")
+            autoIndex++;
+        if (keys[i] == "client_max_body_size")
+            clientMaxBodySize++;
     }
-    if (listen > 1 || serverName > 1 || root > 1 || index > 1 || errorPage > 1 || allowedMethods > 1 || uploadDir > 1)
+    if (listen > 1 || serverName > 1 || root > 1 || index > 1 || errorPage > 1 || allowedMethods > 1 || uploadDir > 1 || autoIndex > 1 || clientMaxBodySize > 1)
         throw std::runtime_error("Syntax error!");
 }
 
@@ -319,5 +339,19 @@ void Parser::parse()
         if (checkSyntax(serverDirectives) == 1)
             throw std::runtime_error("Syntax error!");
     }
+
     this->allServers = allServers;
+    for (size_t i = 0; i < this->allServers.size(); i++)
+    {
+        for (size_t j = 0; j < this->allServers[i].size(); j++)
+        {
+            if (this->allServers[i][j].first == "server.location")
+            {
+                size_t pos = this->allServers[i][j].second[0].find(":", 0);
+                if (pos != std::string::npos)
+                    this->allServers[i][j].second[0] = this->allServers[i][j].second[0].substr(0, pos);
+                this->allServers[i][j].second[0] = normalizeUrl(this->allServers[i][j].second[0]);
+            }
+        }
+    }
 }

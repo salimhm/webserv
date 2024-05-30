@@ -6,7 +6,7 @@
 /*   By: shmimi <shmimi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/23 22:15:53 by shmimi            #+#    #+#             */
-/*   Updated: 2024/05/29 17:27:11 by shmimi           ###   ########.fr       */
+/*   Updated: 2024/05/30 12:27:59 by shmimi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -65,6 +65,7 @@ class Config: public Mime, public Parser
         const std::string getIndex();
         const std::string getAutoIndex();
         const std::string getClientMaxBodySize();
+        const std::string getUploadDir();
         const std::map<std::string, int> getAllowedMethods();
 
         std::string getErrorPage(const std::string& errorCode, const std::string& uri, int location);

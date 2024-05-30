@@ -6,7 +6,7 @@
 /*   By: shmimi <shmimi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/01 02:07:06 by shmimi            #+#    #+#             */
-/*   Updated: 2024/05/29 17:52:35 by shmimi           ###   ########.fr       */
+/*   Updated: 2024/05/30 12:28:49 by shmimi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -303,7 +303,7 @@ std::string handleRequest(Client &client, Config &config)
     std::string root = config.getRoot();
     std::string uri = client.getUri();
     std::string index = config.getIndex();
-    std::string filePath = root + uri;
+    std::string filePath = root + uri.substr(0, uri.size() - 1);
     std::string filePathCpy = filePath;
     std::string errorCode;
     std::string errorPage;
@@ -316,16 +316,24 @@ std::string handleRequest(Client &client, Config &config)
         std::istringstream(errorCode) >> statusMessage;
     }
 
-    // std::cout << "Port => " << client.getPort() << std::endl;
-	// std::cout << "Root => " << root << std::endl;
-	// std::cout << "autoIndex => " << config.getAutoIndex() << std::endl;
-	// std::cout << "index => " << index << std::endl;
-	// std::cout << "filePath => " << filePath << std::endl;
-	// std::cout << "Errorcode => " << errorCode << std::endl;
+    std::cout << "Port => " << client.getPort() << std::endl;
+	std::cout << "Root => " << root << std::endl;
+	std::cout << "autoIndex => " << config.getAutoIndex() << std::endl;
+	std::cout << "index => " << index << std::endl;
+	std::cout << "Errorcode => " << errorCode << std::endl;
+	std::cout << "uploadDir => " << config.getUploadDir() << std::endl;
+	std::cout << "AllowedMethods => " << allowedMethods.size() << std::endl;
+
+    // for (std::map<std::string, int>::iterator it = allowedMethods.begin(); it != allowedMethods.end(); it++)
+    // {
+    //     std::cout << it->first << " ====> " << it->second << std::endl;
+    // }
 
     if (client.getMethod() == "GET" && allowedMethods["GET"])
     {
         // std::cout << root << std::endl;
+	std::cout << "filePath => " << filePath << std::endl;
+	std::cout << "uri => " << uri << std::endl;
         if (stat(filePath.c_str(), &fileStat) == 0) // Check if file/directory exists
         {
         // std::cout << "FILEPATH " << filePath << "      " << filePathCpy << std::endl;

@@ -2,7 +2,7 @@ server :
 		listen	80
 		server_name hh
 		root /Users/shmimi/Desktop/webserv/html
-		index index.htmls
+		index index.html
 		error_page 404 ./src/html/404.html
 		client_max_body_size 5
 		allowed_methods GET POST DELETE
@@ -14,10 +14,15 @@ server :
 		allowed_methods GET POST
 		autoindex on
 
-  server.location /wtf//ds//df :
+  server.location /wtf/ds//df :
 		upload_dir	/wtfff
 		error_page 405 ./src/html/405.html
 		root /local/path/2
+		client_max_body_size 600
+		autoindex off
+  server.location /:
+		error_page 500 ./src/html/500.html
+
 		client_max_body_size 600
 		autoindex off
 server :
