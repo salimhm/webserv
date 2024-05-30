@@ -6,7 +6,7 @@
 /*   By: shmimi <shmimi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/21 15:10:14 by shmimi            #+#    #+#             */
-/*   Updated: 2024/05/28 15:43:22 by shmimi           ###   ########.fr       */
+/*   Updated: 2024/05/30 14:43:45 by shmimi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -77,68 +77,73 @@ int main(int ac, char **av)
     (void)ac;
 
     {
-        std::string filePath = "webserv.yml";
-        // Parser test(filePath);
-        Config config(filePath);
-        // config.parse();
-        config.getAutoIndex();
-        
-        std::vector<pollfd> pollfds;
-        std::vector<Client> clients;
-        std::vector<Server> servers = setupServer(config, pollfds);
-
-        int clientSocket;
-        std::string request;
-
-        std::string response;// = "HTTP/1.1 200 OK\nContent-Type: text/plain\nContent-Length: 12\n\nHello World!";
-        while (1)
+        try
         {
-            try
+            std::string filePath = "webserv.yml";
+            Config config(filePath);
+            config.getAutoIndex();
+            
+            std::vector<pollfd> pollfds;
+            std::vector<Client> clients;
+            std::vector<Server> servers = setupServer(config, pollfds);
+
+            int clientSocket;
+            std::string request;
+
+            std::string response;
+            while (1)
             {
-                for (size_t j = 0; j < pollfds.size(); j++) // Loop through all the servers (ports)
+                try
                 {
-                    int ready = poll(pollfds.data(), pollfds.size(), -1);
-                    if (ready < 0)
+                    for (size_t j = 0; j < pollfds.size(); j++) // Loop through all the servers (ports)
                     {
-                        perror("poll");
-                        exit(1);
-                    }
-                    for (size_t i = 0; i < servers.size(); i++)
-                    {
-                        if (pollfds[j].fd == servers[i].getSockfd() && pollfds[j].revents & POLLIN)
+                        int ready = poll(pollfds.data(), pollfds.size(), -1);
+                        if (ready < 0)
                         {
-                            clientSocket = handleNewConnection(servers[i], pollfds, clients, filePath);
+                            perror("poll");
+                            exit(1);
                         }
-                    }
-                    for (size_t k = 0; k < clients.size(); k++)
-                    {
-                        if (pollfds[j].fd == clients[k].getClientFd())
+                        for (size_t i = 0; i < servers.size(); i++)
                         {
-                            if (pollfds[j].revents & POLLIN)
+                            if (pollfds[j].fd == servers[i].getSockfd() && pollfds[j].revents & POLLIN)
                             {
-                                request = getRequest(clients[k].getClientFd());
-                                if (request.size() > 0)
-                                {
-                                    clients[k].setRequest(parseRequest(request));
-                                    response = handleRequest(clients[k], config);
-                                }
+                                clientSocket = handleNewConnection(servers[i], pollfds, clients, filePath);
                             }
                         }
-                        if (pollfds[j].fd == clients[k].getClientFd() && pollfds[j].revents & POLLOUT)
+                        for (size_t k = 0; k < clients.size(); k++)
                         {
-                            int bytes = send(clients[k].getClientFd(), response.c_str(), response.size(), 0);
-                            std::cout << "Bytes sent: " << bytes << std::endl;
-                            close(clients[k].getClientFd());
-                            clients.erase(clients.begin() + k);
-                            pollfds.erase(pollfds.begin() + j);
+                            if (pollfds[j].fd == clients[k].getClientFd())
+                            {
+                                if (pollfds[j].revents & POLLIN)
+                                {
+                                    request = getRequest(clients[k].getClientFd());
+                                    if (request.size() > 0)
+                                    {
+                                        clients[k].setRequest(parseRequest(request));
+                                        response = handleRequest(clients[k], config);
+                                    }
+                                }
+                            }
+                            if (pollfds[j].fd == clients[k].getClientFd() && pollfds[j].revents & POLLOUT)
+                            {
+                                int bytes = send(clients[k].getClientFd(), response.c_str(), response.size(), 0);
+                                std::cout << "Bytes sent: " << bytes << std::endl;
+                                close(clients[k].getClientFd());
+                                clients.erase(clients.begin() + k);
+                                pollfds.erase(pollfds.begin() + j);
+                            }
                         }
                     }
                 }
+                catch (const std::exception &e)
+                {
+                    std::cerr << e.what() << std::endl;
+                }
             }
-            catch (const std::exception &e)
-            {
-                std::cerr << e.what() << std::endl;
-            }
+        }
+        catch (const std::exception &e)
+        {
+            std::cerr << e.what() << std::endl;
         }
     }
 }

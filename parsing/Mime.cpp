@@ -6,7 +6,7 @@
 /*   By: shmimi <shmimi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/01 17:31:26 by shmimi            #+#    #+#             */
-/*   Updated: 2024/05/15 22:26:19 by shmimi           ###   ########.fr       */
+/*   Updated: 2024/05/30 14:44:31 by shmimi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,12 +14,9 @@
 
 Mime::Mime() : _file("mime.types")
 {
-    std::ifstream file("/Users/shmimi/Desktop/webserv/src/mime.types");
+    std::ifstream file("./assets/mime.types");
     if (!file.is_open())
-    {
-        std::cerr << "Error: could not open mime.types file" << std::endl;
-        throw std::exception();
-    }
+        throw std::runtime_error("Error: could not open mime.types file!");
     std::string line;
     std::vector<std::string> keys;
     std::vector<std::string> subKeys;
@@ -43,14 +40,6 @@ Mime::Mime() : _file("mime.types")
     }
     file.close();
     this->_mimeMap = mimeMap;
-
-    // std::map<std::vector<std::string>, std::string>::iterator it = mimeMap.begin();
-    // while (it != mimeMap.end())
-    // {
-    //     if (it->first[1] == ".html")
-    //         std::cout << it->first[0] << "==>" << it->second << std::endl;
-    //     it++;
-    // }
 }
 
 const std::ifstream &Mime::getFile() const

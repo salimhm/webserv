@@ -6,7 +6,7 @@
 /*   By: shmimi <shmimi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/01 02:07:06 by shmimi            #+#    #+#             */
-/*   Updated: 2024/05/30 12:28:49 by shmimi           ###   ########.fr       */
+/*   Updated: 2024/05/30 14:06:55 by shmimi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -150,10 +150,10 @@ std::string generateIndex(int statusCode)
     switch (statusCode)
     {
     case 403:
-        return readFile("./src/html/403.html");
+        return readFile("./assets/error/403.html");
         break;
     case 404:
-        return readFile("./src/html/404.html");
+        return readFile("./assets/error/404.html");
     default:
         return "";
         break;
@@ -261,45 +261,49 @@ std::string getStatusMessage(int statusCode)
     }
 }
 
-std::string handleRequest(Client &client, Config &config)
+void setClientConfig(Client &client, Config &config)
 {
-    (void)config;
-
     client.setMethod(client.getMethod());
     client.setUri(client.getUri());
     client.setVersion(client.getVersion());
-
-    Response response;
-    std::map<std::string, int> allowedMethods;
-
-    struct stat fileStat;
-    
     if (config.isLocation(client.getUri(), client.getPort()))
     {
 		std::cout << "Location found\n";
         config.setRoot(1, client.getUri(), client.getPort());
-        // config.setServerName(1, client.getUri(), client.getPort());
+        config.setServerName(1, client.getUri(), client.getPort());
         config.setErrorPage(1, client.getUri(), client.getPort());
         config.setIndex(1, client.getUri(), client.getPort());
         config.setAutoIndex(1, client.getUri(), client.getPort());
         config.setClientMaxBodySize(1, client.getUri(), client.getPort());
         config.setUploadDir(1, client.getUri(), client.getPort());
         config.setAllowedMethods(1, client.getUri(), client.getPort());
-        allowedMethods = config.getAllowedMethods(), client.getPort();
     }
     else
     {
 		std::cout << "Location NOT found\n";
         config.setRoot(0, "", client.getPort());
-        // config.setServerName(0, "");
+        config.setServerName(0, "", client.getPort());
         config.setErrorPage(0, "", client.getPort());
         config.setIndex(0, "", client.getPort());
         config.setAutoIndex(0, "", client.getPort());
         config.setClientMaxBodySize(0, "", client.getPort());
         config.setUploadDir(0, "", client.getPort());
         config.setAllowedMethods(0, "", client.getPort());
-        allowedMethods = config.getAllowedMethods();
     }
+}
+
+// void setDefaultConfig(Config &config)
+// {
+    
+// }
+
+std::string handleRequest(Client &client, Config &config)
+{
+    Response response;
+    struct stat fileStat;
+    
+    setClientConfig(client, config);
+    std::map<std::string, int> allowedMethods = config.getAllowedMethods();
     std::string root = config.getRoot();
     std::string uri = client.getUri();
     std::string index = config.getIndex();
@@ -322,25 +326,22 @@ std::string handleRequest(Client &client, Config &config)
 	std::cout << "index => " << index << std::endl;
 	std::cout << "Errorcode => " << errorCode << std::endl;
 	std::cout << "uploadDir => " << config.getUploadDir() << std::endl;
+	std::cout << "serverName => " << config.getServerName() << std::endl;
+    
 	std::cout << "AllowedMethods => " << allowedMethods.size() << std::endl;
-
-    // for (std::map<std::string, int>::iterator it = allowedMethods.begin(); it != allowedMethods.end(); it++)
-    // {
-    //     std::cout << it->first << " ====> " << it->second << std::endl;
-    // }
+    for (std::map<std::string, int>::iterator it = allowedMethods.begin(); it != allowedMethods.end(); it++)
+    {
+        std::cout << it->first << " => " << it->second << std::endl;
+    }
 
     if (client.getMethod() == "GET" && allowedMethods["GET"])
     {
-        // std::cout << root << std::endl;
-	std::cout << "filePath => " << filePath << std::endl;
-	std::cout << "uri => " << uri << std::endl;
+        std::cout << "filePath  " << filePath << std::endl;
         if (stat(filePath.c_str(), &fileStat) == 0) // Check if file/directory exists
         {
-        // std::cout << "FILEPATH " << filePath << "      " << filePathCpy << std::endl;
             if (S_ISDIR(fileStat.st_mode)) // Handle directories
             {
                 filePathCpy = root + uri + "/" + index;
-                // std::cout << "filePathCpy =>" << filePathCpy << std::endl;
                 if (access(filePathCpy.c_str(), F_OK) == 0) // File exists
                 {
                     if (access(filePathCpy.c_str(), R_OK) == 0) // File exists  + readable, serve it
@@ -348,7 +349,7 @@ std::string handleRequest(Client &client, Config &config)
                         generateResponse(response, filePathCpy, config.getContentType(getFileExtension(filePathCpy)), "200", "OK", 0);
                         return getResponse(response);
                     }
-                    generateResponse(response, "./src/html/403.html", "text/html", "403", "Forbidden", 0);
+                    generateResponse(response, "./assets/error/403.html", "text/html", "403", "Forbidden", 0);
                     return getResponse(response);
                 }
                 if (config.getAutoIndex() == "on")
@@ -361,7 +362,7 @@ std::string handleRequest(Client &client, Config &config)
                 {
                     if (readFile(errorPage).size() == 0)
                     {
-                        generateResponse(response, "./src/html/404.html", "text/html", "404", "Not Found", 0);
+                        generateResponse(response, "./assets/error/404.html", "text/html", "404", "Not Found", 0);
                         return getResponse(response);
                     }
                     else
@@ -369,7 +370,7 @@ std::string handleRequest(Client &client, Config &config)
                         generateResponse(response, errorPage, "text/html", errorCode, getStatusMessage(statusMessage), 0);
                         return getResponse(response);
                     }
-                    generateResponse(response, "./src/html/403.html", "text/html", "403", "Forbidden", 0);
+                    generateResponse(response, "./assets/error/403.html", "text/html", "403", "Forbidden", 0);
                     return getResponse(response);
                 }
             }
@@ -386,7 +387,7 @@ std::string handleRequest(Client &client, Config &config)
                 generateResponse(response, errorPage, "text/html", errorCode, getStatusMessage(statusMessage), 0);
                 return getResponse(response);
             }
-            generateResponse(response, "./src/html/404.html", "text/html", "404", "Not Found", 0);
+            generateResponse(response, "./assets/error/404.html", "text/html", "404", "Not Found", 0);
             return getResponse(response);
         }
     }
@@ -398,8 +399,7 @@ std::string handleRequest(Client &client, Config &config)
             {
                 if (std::remove(filePath.c_str()) != 0)
                 {
-                    // std::cout << "Here\n";
-                    generateResponse(response, "./src/html/500.html", "text/html", "500", "Internal Server Error", 0);
+                    generateResponse(response, "./assets/error/500.html", "text/html", "500", "Internal Server Error", 0);
                     return getResponse(response);
                 }
                 else
@@ -410,13 +410,13 @@ std::string handleRequest(Client &client, Config &config)
             }
             else
             {
-                generateResponse(response, "./src/html/403.html", "text/html", "403", "Forbidden", 0);
+                generateResponse(response, "./assets/error/403.html", "text/html", "403", "Forbidden", 0);
                 return getResponse(response);
             }
         }
         else
         {
-            generateResponse(response, "./src/html/404.html", "text/html", "404", "Not Found", 0);
+            generateResponse(response, "./assets/error/404.html", "text/html", "404", "Not Found", 0);
             return getResponse(response);
         }
     }
@@ -426,7 +426,7 @@ std::string handleRequest(Client &client, Config &config)
     }
     else
     {
-        generateResponse(response, "./src/html/405.html", "text/html", "405", "Method Not Allowed", 0);
+        generateResponse(response, "./assets/error/405.html", "text/html", "405", "Method Not Allowed", 0);
         return getResponse(response);
     }
     return "";

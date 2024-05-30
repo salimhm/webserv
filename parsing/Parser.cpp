@@ -6,7 +6,7 @@
 /*   By: shmimi <shmimi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/16 22:50:03 by shmimi            #+#    #+#             */
-/*   Updated: 2024/05/30 10:40:50 by shmimi           ###   ########.fr       */
+/*   Updated: 2024/05/30 18:59:30 by shmimi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -70,7 +70,7 @@ std::vector<std::vector<std::pair<std::string, std::vector<std::string> > > > Pa
     return this->allServers;
 }
 
-void Parser::setServerDirectives(std::vector<std::pair<std::string, std::vector<std::string> > > directives)
+void Parser::setServerDirectives(std::vector<std::pair<std::string, std::vector<std::string> > >& directives)
 {
     std::vector<std::string> keys;
     size_t i = 0;
@@ -117,9 +117,7 @@ int Parser::checkSyntax(std::vector<std::pair<std::string, std::vector<std::stri
             if (directives[i].first == this->allowedDirectives[j] || directives[i].first == "server.location")
                 break;
             else if (directives[i].first != this->allowedDirectives[j] && j == this->allowedDirectives.size() - 1)
-            {
                 return 1;
-            }
         }
         if (directives[i].first == "listen")
         {
@@ -171,6 +169,11 @@ int Parser::checkSyntax(std::vector<std::pair<std::string, std::vector<std::stri
         {
             if (directives[i].second.size() < 1 || directives[i].second.size() > 3)
                 return 1;
+            for (size_t j = 0; j < directives[i].second.size(); j++)
+            {
+                if (directives[i].second[j] != "GET" && directives[i].second[j] != "POST" && directives[i].second[j] != "DELETE")
+                    return 1;
+            }
         }
         if (directives[i].first == "upload_dir")
         {
@@ -289,6 +292,16 @@ std::vector<std::pair<std::string, std::vector<std::string> > > Parser::parseSer
     return serverDirectives;
 }
 
+int checkListen(const std::vector<std::string>& keys)
+{
+    for (size_t i = 0; i < keys.size(); i++)
+    {
+        if (keys[i] == "listen")
+            return 1;
+    }
+    return 0;
+}
+
 void Parser::parse()
 {
     std::ifstream file(filePath);
@@ -296,7 +309,7 @@ void Parser::parse()
     {
         throw std::runtime_error("Failed to open config file");
     }
-
+    size_t port = 0;
     std::string line;
     std::string block;
     std::vector<std::string> serverBlocks;
@@ -336,15 +349,18 @@ void Parser::parse()
             throw std::runtime_error("Syntax error!");
         serverDirectives = parseServer(servers[i]);
         allServers.push_back(serverDirectives);
-        if (checkSyntax(serverDirectives) == 1)
+        if (checkSyntax(serverDirectives) == 1 || port > 1)
             throw std::runtime_error("Syntax error!");
     }
 
     this->allServers = allServers;
+ 
     for (size_t i = 0; i < this->allServers.size(); i++)
     {
         for (size_t j = 0; j < this->allServers[i].size(); j++)
         {
+            if (this->allServers[i][j].first == "listen")
+                port++;
             if (this->allServers[i][j].first == "server.location")
             {
                 size_t pos = this->allServers[i][j].second[0].find(":", 0);
@@ -353,5 +369,7 @@ void Parser::parse()
                 this->allServers[i][j].second[0] = normalizeUrl(this->allServers[i][j].second[0]);
             }
         }
-    }
+    }   
+    if (port == 0 || port != servers.size())
+        throw std::runtime_error("Syntax error!");
 }

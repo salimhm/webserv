@@ -6,7 +6,7 @@
 /*   By: shmimi <shmimi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/16 22:48:15 by shmimi            #+#    #+#             */
-/*   Updated: 2024/05/29 13:16:07 by shmimi           ###   ########.fr       */
+/*   Updated: 2024/05/30 18:45:41 by shmimi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,10 +36,12 @@ class Parser
         void checkGlobalDuplicates(const std::vector<std::string>&);
         void checkLocationsDuplicates(const std::vector<std::string>&);
         int checkSyntax(std::vector<std::pair<std::string, std::vector<std::string> > > directives);
-        void setServerDirectives(std::vector<std::pair<std::string, std::vector<std::string> > > directives);
-        
+        void setServerDirectives(std::vector<std::pair<std::string, std::vector<std::string> > >& directives);
+        // void setDefaultDirectives(const std::vector<std::string>& keys, int& port, std::vector<std::pair<std::string, std::vector<std::string> > >& directives);
         //******** GETTERS *********
         std::vector<std::pair<std::string, std::pair<std::string, std::vector<std::string> > > > getLocations();
         std::vector<std::pair<std::string, std::vector<std::string> > > getGlobalDirectives();
         std::vector<std::vector<std::pair<std::string, std::vector<std::string> > > > getAllServers();
+
 };
+        int checkListen(const std::vector<std::string>& keys);
