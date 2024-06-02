@@ -6,7 +6,7 @@
 /*   By: shmimi <shmimi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/23 22:15:53 by shmimi            #+#    #+#             */
-/*   Updated: 2024/05/30 12:27:59 by shmimi           ###   ########.fr       */
+/*   Updated: 2024/06/02 15:13:28 by shmimi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,6 +30,7 @@ class Config: public Mime, public Parser
         std::string clientMaxBodySize;
         std::string uploadDir;
         std::map<std::string, int> allowedMethods;
+        std::map<std::string, std::string> isErrorPage;
         
         const std::string& filePath;
         static std::string nullFile; //Contains nothing
@@ -57,6 +58,9 @@ class Config: public Mime, public Parser
         void setClientMaxBodySize(int isLocation, const std::string& uri, const std::string& port);
         void setUploadDir(int isLocation, const std::string& uri, const std::string& port);
         void setAllowedMethods(int isLocation, const std::string &uri, const std::string& port);
+        
+        void defineErrorPage(int isLocation, const std::string &uri, const std::string& port);
+        
         /************ GETTERS ************/
         const std::vector<int> getPort();
         const std::string getServerName();
@@ -70,6 +74,7 @@ class Config: public Mime, public Parser
 
         std::string getErrorPage(const std::string& errorCode, const std::string& uri, int location);
         std::string getErrorCode();
+        const std::map<std::string, std::string> getIsErrorPage();
         int isLocation(const std::string& uri, const std::string& port);
         
         size_t getConfigLocationIndex(const std::string &clientUri, const std::string& port);

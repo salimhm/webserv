@@ -9,6 +9,7 @@ SRCS		=	main.cpp\
 				client/Client.cpp\
 				client/clientHandler.cpp\
 				server/Response.cpp\
+				server/Default.cpp\
 				parsing/Mime.cpp\
 				parsing/Parser.cpp\
 

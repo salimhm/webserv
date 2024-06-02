@@ -1,23 +1,21 @@
-#include <iostream>     // std::cout
-#include <algorithm>    // std::remove
+#include <iostream>
+#include <filesystem>
 
-int main () {
-  int myints[] = {10,20,30,30,20,10,10,20};      // 10 20 30 30 20 10 10 20
+namespace fs = std::filesystem;
 
-  std::string files = "todelete";
-  // char* files = lol.data();
-  // bounds of range:
-  std::string::iterator pbegin = files.begin();   //Pointer to the first element of the array
-  std::string::iterator pend = files.end();     //Pointer to the last element of the array
+int main() {
+    // Replace "filename.txt" with the path to your file
+    fs::path filePath = "/Users/shmimi/Desktop/webserv/assets/html/site-1/images/youtube.png";
 
-    // std::cout << "Here " << pbegin << " END " << pend << std::endl;
+    try {
+        // Get the size of the file
+        std::uintmax_t fileSize = fs::file_size(filePath);
 
-  std::remove(files.c_str());
-                                                 // ^              ^
-  std::cout << "range contains:";
-  // for (char* p=pbegin; p!=pend; ++p)
-  //   std::cout << ' ' << *p;
-  std::cout << '\n';
+        // Print the file size in bytes
+        std::cout << "File size: " << fileSize << " bytes" << std::endl;
+    } catch (const fs::filesystem_error& ex) {
+        std::cerr << "Error accessing file: " << ex.what() << std::endl;
+    }
 
-  return 0;
+    return 0;
 }

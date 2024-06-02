@@ -6,13 +6,13 @@
 /*   By: shmimi <shmimi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/01 17:31:26 by shmimi            #+#    #+#             */
-/*   Updated: 2024/05/30 14:44:31 by shmimi           ###   ########.fr       */
+/*   Updated: 2024/06/02 17:52:49 by shmimi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Mime.hpp"
 
-Mime::Mime() : _file("mime.types")
+Mime::Mime() : _file("./assets/mime.types")
 {
     std::ifstream file("./assets/mime.types");
     if (!file.is_open())
@@ -56,7 +56,7 @@ const std::string Mime::getContentType(const std::string &extension) const
         {
             if (it->first[i] == extension)
             {
-                std::cout << it->second << std::endl;
+                // std::cout << it->first[i] << " ==> " << it->second << std::endl;
                 return it->second;
             }
         }

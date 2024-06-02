@@ -6,7 +6,7 @@
 /*   By: shmimi <shmimi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/16 22:50:03 by shmimi            #+#    #+#             */
-/*   Updated: 2024/05/30 18:59:30 by shmimi           ###   ########.fr       */
+/*   Updated: 2024/06/02 14:30:12 by shmimi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -121,8 +121,8 @@ int Parser::checkSyntax(std::vector<std::pair<std::string, std::vector<std::stri
         }
         if (directives[i].first == "listen")
         {
-            if (directives[i].second.size() < 1 || directives[i].second.size() > 1)
-                return 1;
+            // if (directives[i].second.size() < 1 || directives[i].second.size() > 1)
+            //     return 1;
             int port;
             std::stringstream num;
             std::istringstream(directives[i].second[0]) >> port;
@@ -221,7 +221,7 @@ void Parser::checkGlobalDuplicates(const std::vector<std::string>& keys)
         if (keys[i] == "client_max_body_size")
             clientMaxBodySize++;
     }
-    if (listen > 1 || serverName > 1 || root > 1 || index > 1 || errorPage > 1 || allowedMethods > 1 || uploadDir > 1 || autoIndex > 1 || clientMaxBodySize > 1)
+    if (listen > 1 || serverName > 1 || root > 1 || index > 1 || allowedMethods > 1 || uploadDir > 1 || autoIndex > 1 || clientMaxBodySize > 1)
         throw std::runtime_error("Syntax error!");
 }
 
@@ -229,7 +229,7 @@ void Parser::checkLocationsDuplicates(const std::vector<std::string>& keys)
 {
     int root = 0;
     int index = 0;
-    int errorPage = 0;
+    // int errorPage = 0;
     int allowedMethods = 0;
     int uploadDir = 0;
     for (size_t i = 0; i < keys.size(); i++)
@@ -242,14 +242,14 @@ void Parser::checkLocationsDuplicates(const std::vector<std::string>& keys)
             root++;
         if (keys[i] == "index")
             index++;
-        if (keys[i] == "error_page")
-            errorPage++;
+        // if (keys[i] == "error_page")
+        //     errorPage++;
         if (keys[i] == "allowed_methods")
             allowedMethods++;
         if (keys[i] == "upload_dir")
             uploadDir++;
     }
-    if (root > 1 || index > 1 || errorPage > 1 || allowedMethods > 1 || uploadDir > 1)
+    if (root > 1 || index > 1 || allowedMethods > 1 || uploadDir > 1)
         throw std::runtime_error("Syntax error!");
 }
 
@@ -264,6 +264,7 @@ std::vector<std::pair<std::string, std::vector<std::string> > > Parser::parseSer
     while (serverBlocks.size())
     {
         std::vector<std::string> directives = split(serverBlocks[i], " ");
+        // std::cout << "DIRECTIVES SIZE " << directives.size() << std::endl;
         if (directives[0] == "server.location")
         {
             if ((directives.size() == 2 && directives[1][directives[1].length() - 1] != ':') || (directives.size() == 3 && directives[2] != ":"))

@@ -6,12 +6,13 @@
 /*   By: shmimi <shmimi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/01 02:07:06 by shmimi            #+#    #+#             */
-/*   Updated: 2024/05/30 14:06:55 by shmimi           ###   ########.fr       */
+/*   Updated: 2024/06/02 19:46:17 by shmimi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "clientHandler.hpp"
 #include "../server/Response.hpp"
+#include "../server/Default.hpp"
 #include <sstream>
 
 struct Request parseRequest(const std::string &request)
@@ -131,7 +132,9 @@ std::string readFile(std::string filePath)
     std::string line;
     std::string content;
     while (getline(file, line))
-        content += line;
+    {
+        content += line + "\n";
+    }
     file.close();
     return content;
 }
@@ -141,7 +144,7 @@ std::string getResponse(Response responseObj)
     std::string response;
     // std::string response = "HTTP/1.1 200 OK\nContent-Type: text/text\nContent-Length: 21\n\nHelloThisisfrom lolol";
 
-    response += responseObj.getHttpVersion() + " " + responseObj.getStatus() + " " + responseObj.getStatusMessage() + "\n" + responseObj.getContentType() + "\n" + responseObj.getContentLength() + "\n\n" + responseObj.getBody();
+    response += responseObj.getHttpVersion() + " " + responseObj.getStatus() + " " + responseObj.getStatusMessage() + "\r\n" + responseObj.getContentType() + "\r\n" + responseObj.getContentLength() + "\r\n\r\n" + responseObj.getBody();
     return response;
 }
 
@@ -212,52 +215,36 @@ std::string getStatusMessage(int statusCode)
     {
     case 200:
         return "OK";
-        break;
     case 201:
         return "Created";
-        break;
     case 202:
         return "Accepted";
-        break;
     case 301:
         return "Moved Permanently";
-        break;
     case 302:
         return "Found";
-        break;
     case 400:
         return "Bad Request";
-        break;
     case 403:
         return "Forbidden";
-        break;
     case 404:
         return "Not Found";
-        break;
     case 405:
         return "Method Not Allowed";
-        break;
     case 408:
         return "Request Timeout";
-        break;
     case 413:
         return "Payload Too Large";
-        break;
     case 414:
         return "URI Too Long";
-        break;
     case 500:
         return "Internal Server Error";
-        break;
     case 501:
         return "Not Implemented";
-        break;
     case 502:
         return "Bad Gateway";
-        break;
     default:
         return "";
-        break;
     }
 }
 
@@ -270,6 +257,7 @@ void setClientConfig(Client &client, Config &config)
     {
 		std::cout << "Location found\n";
         config.setRoot(1, client.getUri(), client.getPort());
+        config.defineErrorPage(1, client.getUri(), client.getPort());
         config.setServerName(1, client.getUri(), client.getPort());
         config.setErrorPage(1, client.getUri(), client.getPort());
         config.setIndex(1, client.getUri(), client.getPort());
@@ -282,6 +270,7 @@ void setClientConfig(Client &client, Config &config)
     {
 		std::cout << "Location NOT found\n";
         config.setRoot(0, "", client.getPort());
+        config.defineErrorPage(0, "", client.getPort());
         config.setServerName(0, "", client.getPort());
         config.setErrorPage(0, "", client.getPort());
         config.setIndex(0, "", client.getPort());
@@ -292,15 +281,11 @@ void setClientConfig(Client &client, Config &config)
     }
 }
 
-// void setDefaultConfig(Config &config)
-// {
-    
-// }
-
 std::string handleRequest(Client &client, Config &config)
 {
     Response response;
     struct stat fileStat;
+    Default def;
     
     setClientConfig(client, config);
     std::map<std::string, int> allowedMethods = config.getAllowedMethods();
@@ -311,7 +296,13 @@ std::string handleRequest(Client &client, Config &config)
     std::string filePathCpy = filePath;
     std::string errorCode;
     std::string errorPage;
-    int statusMessage = 0;
+    // int statusMessage = 0;
+
+    std::map<std::string, std::string> isErrorPage = config.getIsErrorPage();
+    // for (std::map<std::string, int>::iterator it = isErrorPage.begin(); it != isErrorPage.end(); it++)
+    // {
+        
+    // }
     if (config.getErrorPage().size() > 1)
     {
         errorCode = config.getErrorPage()[0];
@@ -320,28 +311,29 @@ std::string handleRequest(Client &client, Config &config)
         std::istringstream(errorCode) >> statusMessage;
     }
 
-    std::cout << "Port => " << client.getPort() << std::endl;
-	std::cout << "Root => " << root << std::endl;
-	std::cout << "autoIndex => " << config.getAutoIndex() << std::endl;
-	std::cout << "index => " << index << std::endl;
-	std::cout << "Errorcode => " << errorCode << std::endl;
-	std::cout << "uploadDir => " << config.getUploadDir() << std::endl;
-	std::cout << "serverName => " << config.getServerName() << std::endl;
+    // std::cout << "Port => " << client.getPort() << std::endl;
+	// std::cout << "Root => " << root << std::endl;
+	// std::cout << "autoIndex => " << config.getAutoIndex() << std::endl;
+	// std::cout << "index => " << index << std::endl;
+	// std::cout << "Errorcode => " << errorCode << std::endl;
+	// std::cout << "uploadDir => " << config.getUploadDir() << std::endl;
+	// std::cout << "serverName => " << config.getServerName() << std::endl;
     
-	std::cout << "AllowedMethods => " << allowedMethods.size() << std::endl;
-    for (std::map<std::string, int>::iterator it = allowedMethods.begin(); it != allowedMethods.end(); it++)
-    {
-        std::cout << it->first << " => " << it->second << std::endl;
-    }
+	// std::cout << "AllowedMethods => " << allowedMethods.size() << std::endl;
+    // for (std::map<std::string, int>::iterator it = allowedMethods.begin(); it != allowedMethods.end(); it++)
+    // {
+    //     std::cout << it->first << " => " << it->second << std::endl;
+    // }
 
     if (client.getMethod() == "GET" && allowedMethods["GET"])
     {
-        std::cout << "filePath  " << filePath << std::endl;
+        // std::cout << "filePath  " << filePath << std::endl;
         if (stat(filePath.c_str(), &fileStat) == 0) // Check if file/directory exists
         {
             if (S_ISDIR(fileStat.st_mode)) // Handle directories
             {
                 filePathCpy = root + uri + "/" + index;
+            //     std::cout << "getFileExtension " << getFileExtension(filePathCpy) << std::endl;
                 if (access(filePathCpy.c_str(), F_OK) == 0) // File exists
                 {
                     if (access(filePathCpy.c_str(), R_OK) == 0) // File exists  + readable, serve it
@@ -349,45 +341,48 @@ std::string handleRequest(Client &client, Config &config)
                         generateResponse(response, filePathCpy, config.getContentType(getFileExtension(filePathCpy)), "200", "OK", 0);
                         return getResponse(response);
                     }
-                    generateResponse(response, "./assets/error/403.html", "text/html", "403", "Forbidden", 0);
+                    if (isErrorPage.find("403") != isErrorPage.end())
+                    {
+                        generateResponse(response, isErrorPage["403"], "text/html", "403", "Forbidden", 0);
+                        return getResponse(response);
+                    }
+                    generateResponse(response, def.generateErrorPage("403"), "text/html", "403", "Forbidden", 1);
                     return getResponse(response);
                 }
-                if (config.getAutoIndex() == "on")
+                if (config.getAutoIndex() == "on") // AutoIndex is on
                 {
                     std::string autoIndex = generateAutoIndex(filePath, config);
                     generateResponse(response, autoIndex, "text/html", "200", "OK", 1);
                     return getResponse(response);
                 }
-                else
+                else // AutoIndex is off
                 {
-                    if (readFile(errorPage).size() == 0)
+                    if (isErrorPage.find("404") != isErrorPage.end())
                     {
-                        generateResponse(response, "./assets/error/404.html", "text/html", "404", "Not Found", 0);
+                        generateResponse(response, isErrorPage["404"], "text/html", "404", "Not Found", 0);
                         return getResponse(response);
                     }
                     else
                     {
-                        generateResponse(response, errorPage, "text/html", errorCode, getStatusMessage(statusMessage), 0);
+                        generateResponse(response, def.generateErrorPage("404"), "text/html", "404", "Not Found", 1);
                         return getResponse(response);
                     }
-                    generateResponse(response, "./assets/error/403.html", "text/html", "403", "Forbidden", 0);
-                    return getResponse(response);
                 }
             }
             else // Handle files
             {
-                generateResponse(response, filePath, config.getContentType(getFileExtension(filePath)), "200", "OK", 0);
+                generateResponse(response, filePathCpy, config.getContentType(getFileExtension(filePathCpy)), "200", "OK", 0);
                 return getResponse(response);
             }
         }
         else // File/Directory doesn't exist
         {
-            if (errorCode.size() == 3)
+            if (isErrorPage.find("404") != isErrorPage.end())
             {
-                generateResponse(response, errorPage, "text/html", errorCode, getStatusMessage(statusMessage), 0);
+                generateResponse(response, isErrorPage["404"], "text/html", "404", "Not Found", 0);
                 return getResponse(response);
             }
-            generateResponse(response, "./assets/error/404.html", "text/html", "404", "Not Found", 0);
+            generateResponse(response, def.generateErrorPage("404"), "text/html", "404", "Not Found", 1);
             return getResponse(response);
         }
     }
@@ -399,6 +394,11 @@ std::string handleRequest(Client &client, Config &config)
             {
                 if (std::remove(filePath.c_str()) != 0)
                 {
+                    if (isErrorPage.find("500") != isErrorPage.end())
+                    {
+                        generateResponse(response, isErrorPage["500"], "text/html", "500", "Internal Server Error", 0);
+                        return getResponse(response);
+                    }
                     generateResponse(response, "./assets/error/500.html", "text/html", "500", "Internal Server Error", 0);
                     return getResponse(response);
                 }
@@ -410,13 +410,23 @@ std::string handleRequest(Client &client, Config &config)
             }
             else
             {
-                generateResponse(response, "./assets/error/403.html", "text/html", "403", "Forbidden", 0);
+                if (isErrorPage.find("403") != isErrorPage.end())
+                {
+                    generateResponse(response, isErrorPage["403"], "text/html", "403", "Forbidden", 0);
+                    return getResponse(response);
+                }
+                generateResponse(response, def.generateErrorPage("403"), "text/html", "403", "Forbidden", 1);
                 return getResponse(response);
             }
         }
         else
         {
-            generateResponse(response, "./assets/error/404.html", "text/html", "404", "Not Found", 0);
+            if (isErrorPage.find("404") != isErrorPage.end())
+            {
+                generateResponse(response, isErrorPage["404"], "text/html", "404", "Not Found", 0);
+                return getResponse(response);
+            }
+            generateResponse(response, def.generateErrorPage("404"), "text/html", "404", "Not Found", 1);
             return getResponse(response);
         }
     }
@@ -426,7 +436,12 @@ std::string handleRequest(Client &client, Config &config)
     }
     else
     {
-        generateResponse(response, "./assets/error/405.html", "text/html", "405", "Method Not Allowed", 0);
+        if (isErrorPage.find("405") != isErrorPage.end())
+        {
+            generateResponse(response, isErrorPage["405"], "text/html", "405", "Method Not Allowed", 0);
+            return getResponse(response);
+        }
+        generateResponse(response, def.generateErrorPage("405"), "text/html", "405", "Method Not Allowed", 1);
         return getResponse(response);
     }
     return "";
