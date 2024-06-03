@@ -6,7 +6,7 @@
 /*   By: shmimi <shmimi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/31 02:36:33 by shmimi            #+#    #+#             */
-/*   Updated: 2024/05/28 15:58:33 by shmimi           ###   ########.fr       */
+/*   Updated: 2024/06/03 16:02:35 by shmimi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,6 +22,7 @@ struct Request
 {
     std::vector<std::string> startLine;
     std::vector< std::pair<std::string, std::string> > headers;
+    std::map <std::string, std::string> headers_map;
     std::string body;
     std::string port;
 };
@@ -43,6 +44,7 @@ class Client: public Config
         // int getPort() const;
         const std::vector<std::string> &getRequest() const;
         const std::vector< std::pair<std::string, std::string> >& getHeaders() const;
+        const std::map <std::string, std::string>& getHeadersmap() const;
         const std::string& getPort() const;
         const std::string& getBody() const;
         const std::string& getMethod() const;

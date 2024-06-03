@@ -6,7 +6,7 @@
 /*   By: shmimi <shmimi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/01 02:07:06 by shmimi            #+#    #+#             */
-/*   Updated: 2024/06/02 19:46:17 by shmimi           ###   ########.fr       */
+/*   Updated: 2024/06/03 16:58:09 by shmimi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -48,7 +48,6 @@ struct Request parseRequest(const std::string &request)
 
         size_t posHeader = 2;
         int pos = headerString.find("\n", posHeader);
-        // std::cout << headerString.substr(0, 23) << std::endl;
         int start = 0;
         int semiColon = 0;
         while (posHeader != std::string::npos)
@@ -64,6 +63,11 @@ struct Request parseRequest(const std::string &request)
             if (semiColon < 0)
                 break;
             headers.push_back(std::make_pair(key, value));
+        }
+        for (size_t i = 0; i < headers.size(); i++)
+        {
+            // std::cout << headers[i].first << "=>" << headers[i].second << std::endl;
+            httpRequest.headers_map[headers[i].first] = headers[i].second;
         }
 
         for (size_t i = 0; i < headers.size(); i++)
@@ -134,6 +138,10 @@ std::string readFile(std::string filePath)
     while (getline(file, line))
     {
         content += line + "\n";
+    }
+    if (filePath.find(".jpg") != std::string::npos)
+    {
+        // std::cout << "JPG == " << content.length() << std::endl;
     }
     file.close();
     return content;
@@ -281,11 +289,14 @@ void setClientConfig(Client &client, Config &config)
     }
 }
 
-std::string handleRequest(Client &client, Config &config)
+std::string handleRequest(Client &client, Config &config, std::string &request)
 {
     Response response;
     struct stat fileStat;
     Default def;
+
+    int fdfile = open("/tmp/tmp.txt", O_CREAT | O_RDWR, 0777);
+    Cgi cgi = Cgi(fdfile, request);
     
     setClientConfig(client, config);
     std::map<std::string, int> allowedMethods = config.getAllowedMethods();
@@ -327,63 +338,71 @@ std::string handleRequest(Client &client, Config &config)
 
     if (client.getMethod() == "GET" && allowedMethods["GET"])
     {
-        // std::cout << "filePath  " << filePath << std::endl;
-        if (stat(filePath.c_str(), &fileStat) == 0) // Check if file/directory exists
+        if (client.getUri().find("/CGIscripts/get.py") != std::string::npos)
         {
-            if (S_ISDIR(fileStat.st_mode)) // Handle directories
-            {
-                filePathCpy = root + uri + "/" + index;
-            //     std::cout << "getFileExtension " << getFileExtension(filePathCpy) << std::endl;
-                if (access(filePathCpy.c_str(), F_OK) == 0) // File exists
-                {
-                    if (access(filePathCpy.c_str(), R_OK) == 0) // File exists  + readable, serve it
-                    {
-                        generateResponse(response, filePathCpy, config.getContentType(getFileExtension(filePathCpy)), "200", "OK", 0);
-                        return getResponse(response);
-                    }
-                    if (isErrorPage.find("403") != isErrorPage.end())
-                    {
-                        generateResponse(response, isErrorPage["403"], "text/html", "403", "Forbidden", 0);
-                        return getResponse(response);
-                    }
-                    generateResponse(response, def.generateErrorPage("403"), "text/html", "403", "Forbidden", 1);
-                    return getResponse(response);
-                }
-                if (config.getAutoIndex() == "on") // AutoIndex is on
-                {
-                    std::string autoIndex = generateAutoIndex(filePath, config);
-                    generateResponse(response, autoIndex, "text/html", "200", "OK", 1);
-                    return getResponse(response);
-                }
-                else // AutoIndex is off
-                {
-                    if (isErrorPage.find("404") != isErrorPage.end())
-                    {
-                        generateResponse(response, isErrorPage["404"], "text/html", "404", "Not Found", 0);
-                        return getResponse(response);
-                    }
-                    else
-                    {
-                        generateResponse(response, def.generateErrorPage("404"), "text/html", "404", "Not Found", 1);
-                        return getResponse(response);
-                    }
-                }
-            }
-            else // Handle files
-            {
-                generateResponse(response, filePathCpy, config.getContentType(getFileExtension(filePathCpy)), "200", "OK", 0);
-                return getResponse(response);
-            }
-        }
-        else // File/Directory doesn't exist
-        {
-            if (isErrorPage.find("404") != isErrorPage.end())
-            {
-                generateResponse(response, isErrorPage["404"], "text/html", "404", "Not Found", 0);
-                return getResponse(response);
-            }
-            generateResponse(response, def.generateErrorPage("404"), "text/html", "404", "Not Found", 1);
+            cgi.getCgi(client);
+            generateResponse(response, "./responsegetCGI.html", "text/html", "200", "OK", 0);
             return getResponse(response);
+        }
+        else
+        {
+            if (stat(filePath.c_str(), &fileStat) == 0) // Check if file/directory exists
+            {
+                if (S_ISDIR(fileStat.st_mode)) // Handle directories
+                {
+                    filePathCpy = root + uri + "/" + index;
+                //     std::cout << "getFileExtension " << getFileExtension(filePathCpy) << std::endl;
+                    if (access(filePathCpy.c_str(), F_OK) == 0) // File exists
+                    {
+                        if (access(filePathCpy.c_str(), R_OK) == 0) // File exists  + readable, serve it
+                        {
+                            generateResponse(response, filePathCpy, config.getContentType(getFileExtension(filePathCpy)), "200", "OK", 0);
+                            return getResponse(response);
+                        }
+                        if (isErrorPage.find("403") != isErrorPage.end())
+                        {
+                            generateResponse(response, isErrorPage["403"], "text/html", "403", "Forbidden", 0);
+                            return getResponse(response);
+                        }
+                        generateResponse(response, def.generateErrorPage("403"), "text/html", "403", "Forbidden", 1);
+                        return getResponse(response);
+                    }
+                    if (config.getAutoIndex() == "on") // AutoIndex is on
+                    {
+                        std::string autoIndex = generateAutoIndex(filePath, config);
+                        generateResponse(response, autoIndex, "text/html", "200", "OK", 1);
+                        return getResponse(response);
+                    }
+                    else // AutoIndex is off
+                    {
+                        if (isErrorPage.find("404") != isErrorPage.end())
+                        {
+                            generateResponse(response, isErrorPage["404"], "text/html", "404", "Not Found", 0);
+                            return getResponse(response);
+                        }
+                        else
+                        {
+                            generateResponse(response, def.generateErrorPage("404"), "text/html", "404", "Not Found", 1);
+                            return getResponse(response);
+                        }
+                    }
+                }
+                else // Handle files
+                {
+                    generateResponse(response, filePathCpy, config.getContentType(getFileExtension(filePathCpy)), "200", "OK", 0);
+                    return getResponse(response);
+                }
+            }
+            else // File/Directory doesn't exist
+            {
+                if (isErrorPage.find("404") != isErrorPage.end())
+                {
+                    generateResponse(response, isErrorPage["404"], "text/html", "404", "Not Found", 0);
+                    return getResponse(response);
+                }
+                generateResponse(response, def.generateErrorPage("404"), "text/html", "404", "Not Found", 1);
+                return getResponse(response);
+            }
         }
     }
     else if (client.getMethod() == "DELETE" && allowedMethods["DELETE"])
@@ -432,7 +451,9 @@ std::string handleRequest(Client &client, Config &config)
     }
     else if (client.getMethod() == "POST" && allowedMethods["POST"])
     {
-        std::cout << "Body is ====> " << client.getBody() << std::endl;
+        cgi.postCgi(client, config);
+        generateResponse(response, "./responsepostCGI.html", "text/html", "200", "OK", 0);
+        return getResponse(response);
     }
     else
     {

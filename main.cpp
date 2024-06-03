@@ -6,7 +6,7 @@
 /*   By: shmimi <shmimi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/21 15:10:14 by shmimi            #+#    #+#             */
-/*   Updated: 2024/06/02 19:54:14 by shmimi           ###   ########.fr       */
+/*   Updated: 2024/06/03 16:58:13 by shmimi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -46,11 +46,12 @@ std::string getRequest(int clientSocket)
     while (data > 0)
     {
         data = recv(clientSocket, buffer, 1024, 0);
-        request += buffer;
+        if (data > 0)
+            request += buffer;
     }
-    std::cout << "***************REQUEST***************\n";
-    std::cout << request << std::endl;
-    std::cout << "***************END REQUEST***************\n";
+    // std::cout << "***************REQUEST***************\n";
+    // std::cout << request << std::endl;
+    // std::cout << "***************END REQUEST***************\n";
     return request;
 }
 
@@ -120,14 +121,19 @@ int main(int ac, char **av)
                                     if (request.size() > 0)
                                     {
                                         clients[k].setRequest(parseRequest(request));
-                                        response = handleRequest(clients[k], config);
+                                        response = handleRequest(clients[k], config, request);
                                     }
                                 }
                             }
                             if (pollfds[j].fd == clients[k].getClientFd() && pollfds[j].revents & POLLOUT)
                             {
                                 size_t bytes = send(clients[k].getClientFd(), response.c_str(), response.size(), 0);
-                                
+                                if (bytes < 0)
+                                {
+                                    std::cerr << "Error sending data" << std::endl;
+                                    clients.erase(clients.begin() + k);
+                                    pollfds.erase(pollfds.begin() + j);
+                                }
                                 std::cout << "Bytes sent: " << bytes << std::endl;
                                 close(clients[k].getClientFd());
                                 clients.erase(clients.begin() + k);

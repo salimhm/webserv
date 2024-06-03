@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="s.css">
+    <title>Vibrant Website</title>
+
+</head>
+
+<body>
+    <!-- <img src="joanna-stolowicz-oq-Qiu2Yys0-unsplash.jpg" alt=""> -->
+    <header>
+        <h1>Vibrant Website</h1>
+    </header>
+    <form action="/CGIscripts/post.py" method="POST" enctype="multipart/form-data">
+        <input type="text" name="na">
+        <input type="text" name="va">
+        <button type="submit">Submit me</button>
+    </form>
+
+    <br><br><br><br><br>
+    <form action="/CGIscripts/upload.py" method="POST" enctype="multipart/form-data">
+        <input type="file" name="file" multiple>
+        <button type="submit">Submit me</button>
+    </form>
+    <br><br><br><br><br>
+
+    <form action="/CGIscripts/get.py" method="GET" enctype="multipart/form-data">
+        <input type="text" name="na">
+        <input type="text" name="va">
+        <button type="submit">Submit me</button>
+    </form>
+
+    <main>
+        <section>
+            <h2>Welcome to our vibrant website!</h2>
+            <p>This is an example of a larger HTML website with more content and colors.</p>
+            <p>No images are used in this example.</p>
+        </section>
+
+        <section>
+            <h2>Our Services</h2>
+            <p>Explore our colorful range of services and discover what we have to offer.</p>
+        </section>
+
+        <section>
+            <h2>Contact Us</h2>
+            <p>Feel the energy and reach out to us if you have any questions or inquiries.</p>
+        </section>
+    </main>
+     <video width="740" height="420" controls>
+  	<source src="video.mp4" type="video/mp4">
+     </video>
+    <!-- <video width="500" height="500" controls>
+        <source src="video.mp4" type="video/mp4">
+      </video>  -->
+    <!-- <footer>
+        <p>&copy; 2024 Vibrant Website</p>
+    </footer> -->
+</body>
+
+</html>
+

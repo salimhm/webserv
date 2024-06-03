@@ -6,7 +6,7 @@
 /*   By: shmimi <shmimi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/20 18:08:33 by shmimi            #+#    #+#             */
-/*   Updated: 2024/05/31 23:54:17 by shmimi           ###   ########.fr       */
+/*   Updated: 2024/06/02 20:57:00 by shmimi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,7 +33,7 @@ Server::Server(int port)
         perror("Couldn't bind socket to the given address");
         exit(1);
     }
-    if (listen(this->getSockfd(), 10) < 0)
+    if (listen(this->getSockfd(), 1000) < 0)
     {
         perror("Listen");
         exit(1);
