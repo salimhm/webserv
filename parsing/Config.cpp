@@ -6,7 +6,7 @@
 /*   By: shmimi <shmimi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/23 22:19:25 by shmimi            #+#    #+#             */
-/*   Updated: 2024/06/02 15:17:18 by shmimi           ###   ########.fr       */
+/*   Updated: 2024/06/04 23:08:56 by shmimi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -67,6 +67,65 @@ size_t Config::getPortIndex(const std::string &port)
         }
     }
     return 0;
+}
+
+void Config::setRedirect(int isLocation, const std::string &uri, const std::string& port)
+{
+    this->redirect.clear();
+    
+    size_t portIndex = getPortIndex(port);
+    if (!isLocation)
+    {
+        for (size_t j = 0; j < this->servers[portIndex].size(); j++)
+        {
+            if (this->servers[portIndex][j].first == "redirect")
+            {
+                this->redirect = this->servers[portIndex][j].second;
+                return;
+            }
+        }
+    }
+    else
+    {
+        std::vector<std::string> splittedUri = split(uri, "/");
+        splittedUri[1] = '/' + splittedUri[1] + '/';
+        for (size_t j = 0; j < this->servers[portIndex].size(); j++)
+        {
+            if (this->servers[portIndex][j].first == "server.location" && this->servers[portIndex][j].second[0].find(splittedUri[1].c_str(), 0, splittedUri[1].length()) != std::string::npos)
+            {
+                size_t k = j + 1;
+                while(k < this->servers[portIndex].size() && this->servers[portIndex][k].first != "server.location")
+                {
+                    if (k < this->servers[portIndex].size() && this->servers[portIndex][k].first == "redirect")
+                    {
+                        this->redirect = this->servers[portIndex][k].second;
+                        return;
+                    }
+                    k++;
+                }
+            }
+        }
+        for (size_t i = 0; i < this->servers[portIndex].size(); i++)
+        {
+            if (this->servers[portIndex][i].second[0] == "/")
+            {
+                size_t j = i + 1;
+                while(j < this->servers[portIndex].size() && this->servers[portIndex][j].first != "server.location")
+                {
+                    if (j < this->servers[portIndex].size() && this->servers[portIndex][j].first == "redirect")
+                    {
+                        this->redirect = this->servers[portIndex][j].second;
+                        return;
+                    }
+                    j++;
+                }
+            }
+        }
+        if (this->redirect.size() == 0)
+        {
+            setServerName(0, "", port);
+        }
+    }
 }
 
 void Config::setPort()
@@ -639,6 +698,11 @@ const std::map<std::string, int> Config::getAllowedMethods()
 const std::map<std::string, std::string> Config::getIsErrorPage()
 {
     return this->isErrorPage;
+}
+
+const std::vector<std::string> Config::getRedirect()
+{
+    return this->redirect;
 }
 
 std::string Config::getErrorCode()

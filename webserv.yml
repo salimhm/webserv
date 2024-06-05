@@ -3,12 +3,10 @@ server :
 		server_name hh
 		root ./assets/html/site-1
 		index    index.html
-
 		client_max_body_size 5000000
 		allowed_methods GET POST DELETE 
 		autoindex on
   server.location   /hehe/ :
-
 		upload_dir	/lol
 		allowed_methods GET POST
 		error_page 416 ./assets/error/416.html

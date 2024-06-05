@@ -6,15 +6,20 @@
 /*   By: shmimi <shmimi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/25 00:04:21 by shmimi            #+#    #+#             */
-/*   Updated: 2024/06/03 16:02:52 by shmimi           ###   ########.fr       */
+/*   Updated: 2024/06/04 22:30:52 by shmimi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Client.hpp"
 
-Client::Client(const int clientFd, const std::string& filePath) : Config(filePath), clientFd(clientFd) {}
+Client::Client(const int clientFd, const std::string& filePath) : Config(filePath), clientFd(clientFd)
+{
+    _totalBytes = 0;
+    _bytesToSend = 0;
+    _bytesSent = 0;
+}
 
-
+// ******************************* Getters *******************************
 int Client::getClientFd() const
 {
     return this->clientFd;
@@ -60,6 +65,22 @@ const std::string& Client::getPort() const
     return this->request.port;
 }
 
+
+const int& Client::getTotalBytes()
+{
+    return this->_totalBytes;
+}
+
+const int& Client::getBytesToSend()
+{
+    return this->_bytesToSend;
+}
+
+const int& Client::getBytesSent()
+{
+    return this->_bytesSent;
+}
+// ******************************* Setters *******************************
 void Client::setMethod(const std::string &method)
 {
     this->_method = method;
@@ -78,4 +99,19 @@ void Client::setVersion(const std::string &version)
 void Client::setRequest(const Request &request)
 {
     this->request = request;
+}
+
+void Client::setTotalBytes(const int &totalBytes)
+{
+    this->_totalBytes = totalBytes;
+}
+
+void Client::setBytesToSend(const int& bytesToSend)
+{
+    this->_bytesToSend = bytesToSend;
+}
+
+void Client::setBytesSent(const int& bytesSent)
+{
+    this->_bytesSent = bytesSent;
 }

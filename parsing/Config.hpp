@@ -6,7 +6,7 @@
 /*   By: shmimi <shmimi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/23 22:15:53 by shmimi            #+#    #+#             */
-/*   Updated: 2024/06/02 15:13:28 by shmimi           ###   ########.fr       */
+/*   Updated: 2024/06/04 23:08:24 by shmimi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,6 +31,7 @@ class Config: public Mime, public Parser
         std::string uploadDir;
         std::map<std::string, int> allowedMethods;
         std::map<std::string, std::string> isErrorPage;
+        std::vector<std::string> redirect;
         
         const std::string& filePath;
         static std::string nullFile; //Contains nothing
@@ -58,7 +59,7 @@ class Config: public Mime, public Parser
         void setClientMaxBodySize(int isLocation, const std::string& uri, const std::string& port);
         void setUploadDir(int isLocation, const std::string& uri, const std::string& port);
         void setAllowedMethods(int isLocation, const std::string &uri, const std::string& port);
-        
+        void setRedirect(int isLocation, const std::string &uri, const std::string& port);
         void defineErrorPage(int isLocation, const std::string &uri, const std::string& port);
         
         /************ GETTERS ************/
@@ -71,7 +72,8 @@ class Config: public Mime, public Parser
         const std::string getClientMaxBodySize();
         const std::string getUploadDir();
         const std::map<std::string, int> getAllowedMethods();
-
+        const std::vector<std::string> getRedirect();
+        
         std::string getErrorPage(const std::string& errorCode, const std::string& uri, int location);
         std::string getErrorCode();
         const std::map<std::string, std::string> getIsErrorPage();

@@ -6,7 +6,7 @@
 /*   By: shmimi <shmimi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/21 15:10:14 by shmimi            #+#    #+#             */
-/*   Updated: 2024/06/03 16:58:13 by shmimi           ###   ########.fr       */
+/*   Updated: 2024/06/05 15:19:24 by shmimi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,7 +47,7 @@ std::string getRequest(int clientSocket)
     {
         data = recv(clientSocket, buffer, 1024, 0);
         if (data > 0)
-            request += buffer;
+            request.append(buffer, data);
     }
     // std::cout << "***************REQUEST***************\n";
     // std::cout << request << std::endl;
@@ -55,7 +55,7 @@ std::string getRequest(int clientSocket)
     return request;
 }
 
-int handleNewConnection(Server &server, std::vector<pollfd> &pollfds, std::vector<Client> &clients, std::string& filePath)
+int handleNewConnection(Server &server, std::vector<pollfd> &pollfds, std::vector<Client> &clients, std::string &filePath)
 {
     int clientSocket = accept(server.getSockfd(), (struct sockaddr *)&server.getAddr(), &server.getAddrlen());
     if (clientSocket < 0)
@@ -83,7 +83,7 @@ int main(int ac, char **av)
             std::string filePath = "webserv.yml";
             Config config(filePath);
             config.getAutoIndex();
-            
+
             std::vector<pollfd> pollfds;
             std::vector<Client> clients;
             std::vector<Server> servers = setupServer(config, pollfds);
@@ -92,6 +92,7 @@ int main(int ac, char **av)
             std::string request;
 
             std::string response;
+            // ssize_t bytes;
             while (1)
             {
                 try
@@ -127,17 +128,29 @@ int main(int ac, char **av)
                             }
                             if (pollfds[j].fd == clients[k].getClientFd() && pollfds[j].revents & POLLOUT)
                             {
-                                size_t bytes = send(clients[k].getClientFd(), response.c_str(), response.size(), 0);
+                                std::cout << "Total Bytes => " << clients[k].getTotalBytes() << "  " << " BYTES TO SEND for " << k << "  " << clients[k].getBytesToSend() << std::endl;
+                                if (clients[k].getTotalBytes() == 0)
+                                {
+                                    clients[k].setTotalBytes(response.size());
+                                    clients[k].setBytesToSend(response.size() - clients[k].getBytesSent());
+                                }
+                                ssize_t bytes = send(clients[k].getClientFd(), response.c_str() + clients[k].getBytesSent(), clients[k].getBytesToSend(), 0);
+                                clients[k].setBytesSent(clients[k].getBytesSent() + bytes);
+                                clients[k].setBytesToSend(clients[k].getBytesToSend() - bytes);
                                 if (bytes < 0)
                                 {
-                                    std::cerr << "Error sending data" << std::endl;
+                                    std::cerr << "Error sending data for " << k << "  " << clients[k].getRequest()[1] << std::endl;
                                     clients.erase(clients.begin() + k);
                                     pollfds.erase(pollfds.begin() + j);
                                 }
-                                std::cout << "Bytes sent: " << bytes << std::endl;
-                                close(clients[k].getClientFd());
-                                clients.erase(clients.begin() + k);
-                                pollfds.erase(pollfds.begin() + j);
+                                if (bytes == 0 && clients[k].getTotalBytes() > 0)
+                                {
+                                    // std::cout << "Closing connection" << std::endl;
+                                    close(clients[k].getClientFd());
+                                    clients.erase(clients.begin() + k);
+                                    pollfds.erase(pollfds.begin() + j);
+                                    // std::cout << "k is ==> " << k << std::endl;
+                                }
                             }
                         }
                     }

@@ -6,7 +6,7 @@
 /*   By: shmimi <shmimi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/31 02:36:33 by shmimi            #+#    #+#             */
-/*   Updated: 2024/06/03 16:02:35 by shmimi           ###   ########.fr       */
+/*   Updated: 2024/06/04 22:30:16 by shmimi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,11 +37,14 @@ class Client: public Config
         std::string _uri;
         std::string _version;
 
+        int _totalBytes;
+        int _bytesToSend;
+        int _bytesSent;
+
     public:
         Client(const int clientFd, const std::string& filePath);
         /********** Getters *************/
         int getClientFd() const;
-        // int getPort() const;
         const std::vector<std::string> &getRequest() const;
         const std::vector< std::pair<std::string, std::string> >& getHeaders() const;
         const std::map <std::string, std::string>& getHeadersmap() const;
@@ -51,12 +54,20 @@ class Client: public Config
         const std::string& getUri() const;
         const std::string& getVersion() const;
 
+        const int &getTotalBytes();
+        const int &getRemainingBytes();
+        const int &getBytesToSend();
+        const int &getBytesSent();
         /********** Setters *************/
         void setPort();
         void setMethod(const std::string &method);
         void setUri(const std::string &uri);
         void setVersion(const std::string &version);
 
+        void setTotalBytes(const int &totalBytes);
+        void setRemainingBytes(const int &remainingBytes);
+        void setBytesToSend(const int& bytesToSend);
+        void setBytesSent(const int& bytesSent);
         void setRequest(const Request &request);
 
 };
