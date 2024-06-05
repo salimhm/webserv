@@ -6,7 +6,7 @@
 /*   By: shmimi <shmimi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/16 22:50:03 by shmimi            #+#    #+#             */
-/*   Updated: 2024/06/03 20:12:43 by shmimi           ###   ########.fr       */
+/*   Updated: 2024/06/05 20:58:28 by shmimi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -95,7 +95,6 @@ void Parser::setServerDirectives(std::vector<std::pair<std::string, std::vector<
             if (pos != std::string::npos)
                 path = path.substr(0, pos);
             path = normalizeUrl(path);
-            // std::cout << "Path ======= " << path << std::endl;
             j++;
             while (j < directives.size() && directives[j].first != "server.location")
             {
@@ -189,6 +188,10 @@ int Parser::checkSyntax(std::vector<std::pair<std::string, std::vector<std::stri
         if (directives[i].first == "redirect")
         {
             if (directives[i].second.size() < 2 || directives[i].second.size() > 2)
+                return 1;
+            if (directives[i].second[1][0] != '/' && directives[i].second[1].find("http://", 0, 7) != 0)
+                return 1;
+            else if (directives[i].second[1][0] != '/' && directives[i].second[1].size() < 8)
                 return 1;
         }
     }

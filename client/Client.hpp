@@ -6,7 +6,7 @@
 /*   By: shmimi <shmimi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/31 02:36:33 by shmimi            #+#    #+#             */
-/*   Updated: 2024/06/04 22:30:16 by shmimi           ###   ########.fr       */
+/*   Updated: 2024/06/05 19:01:34 by shmimi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,6 +37,7 @@ class Client: public Config
         std::string _uri;
         std::string _version;
 
+
         int _totalBytes;
         int _bytesToSend;
         int _bytesSent;
@@ -55,7 +56,6 @@ class Client: public Config
         const std::string& getVersion() const;
 
         const int &getTotalBytes();
-        const int &getRemainingBytes();
         const int &getBytesToSend();
         const int &getBytesSent();
         /********** Setters *************/

@@ -6,7 +6,7 @@
 /*   By: shmimi <shmimi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/23 22:19:25 by shmimi            #+#    #+#             */
-/*   Updated: 2024/06/04 23:08:56 by shmimi           ###   ########.fr       */
+/*   Updated: 2024/06/05 19:20:25 by shmimi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -79,7 +79,7 @@ void Config::setRedirect(int isLocation, const std::string &uri, const std::stri
         for (size_t j = 0; j < this->servers[portIndex].size(); j++)
         {
             if (this->servers[portIndex][j].first == "redirect")
-            {
+            {                
                 this->redirect = this->servers[portIndex][j].second;
                 return;
             }
@@ -234,7 +234,7 @@ void Config::setRoot(int isLocation, const std::string &uri, const std::string& 
     this->root.clear();
     
     size_t portIndex = getPortIndex(port);
-    std::cout << "isLocation " << isLocation << "    " << uri << " isLocation\n";
+    // std::cout << "isLocation " << isLocation << "    " << uri << " isLocation\n";
     if (!isLocation)
     {
         for (size_t j = 0; j < this->servers[portIndex].size(); j++)
