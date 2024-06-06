@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Method Selector</title>
+</head>
+<body>
+    <h2>Choose a method:</h2>
+    <form id="methodForm" action="#" method="get">
+        <select id="methodSelect" name="method">
+            <option value="GET">GET</option>
+            <option value="POST">POST</option>
+        </select>
+        <button type="submit" id="submitButton">Submit</button>
+    </form>
+
+    <script>
+        document.getElementById("methodForm").addEventListener("submit", function(event) {
+            event.preventDefault(); // Prevent default form submission
+
+            var method = document.getElementById("methodSelect").value; // Get selected method
+
+            // Depending on the selected method, change the form's action and submit
+            if (method === "GET") {
+                this.setAttribute("action", "get_handler_url");
+            } else if (method === "POST") {
+                this.setAttribute("action", "post_handler_url");
+            }
+
+            this.submit(); // Submit the form
+        });
+    </script>
+</body>
+</html>
+

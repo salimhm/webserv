@@ -6,7 +6,7 @@
 /*   By: shmimi <shmimi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/23 22:19:25 by shmimi            #+#    #+#             */
-/*   Updated: 2024/06/05 19:20:25 by shmimi           ###   ########.fr       */
+/*   Updated: 2024/06/06 21:07:02 by shmimi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,6 +29,7 @@ Config::Config(const std::string &filePath) : Parser(filePath), filePath(filePat
     this->servers = this->getAllServers();
 
     setPort();
+    setHost();
     // setServerName(0, "");
     // setRoot(0, "");
     // setErrorPage(0, "");
@@ -52,7 +53,6 @@ Config &Config::operator=(const Config &cpy)
 
 size_t Config::getPortIndex(const std::string &port)
 {
-    (void)port;
     for (size_t i = 0; i < this->servers.size(); i++)
     {
         for (size_t j = 0; j < this->servers[i].size(); j++)
@@ -146,11 +146,27 @@ void Config::setPort()
             }
         }
     }
-    // for (size_t i = 0; i < port.size(); i++)
-    // {
-    //     std::cout << "port " << port[i] << std::endl;
-    // }
     this->port = ports;
+}
+
+void Config::setHost()
+{
+    std::vector<std::string> host;
+    for (size_t i = 0; i < this->servers.size(); i++)
+    {
+        for (size_t j = 0; j < this->servers[i].size(); j++)
+        {
+            if (this->servers[i][j].first == "host")
+            {
+                // std::cout << "this->servers[i][j].second.size() " << this->servers[i][j].second[0] << std::endl;
+                this->host.push_back(this->servers[i][j].second[0]);
+            }
+        }
+    }
+    // for (size_t i = 0; i < this->host.size(); i++)
+    // {
+    //     std::cout << "host " << this->host[i] << std::endl;
+    // }
 }
 
 void Config::setServerName(int isLocation, const std::string &uri, const std::string& port)
@@ -658,6 +674,24 @@ const std::vector<int> Config::getPort()
 const std::string Config::getServerName()
 {
     return this->serverName;
+}
+
+const std::string Config::getHost(int port)
+{
+    std::stringstream ss;
+    ss << port;
+    std::string portStr = ss.str();
+    int portIndex = getPortIndex(portStr);
+    
+    for (size_t i = 0; i < this->servers[portIndex].size(); i++)
+    {
+        if (this->servers[portIndex][i].first == "host")
+        {
+            return this->servers[portIndex][i].second[0];
+        }
+    }
+    
+    return "";
 }
 
 const std::string Config::getRoot()

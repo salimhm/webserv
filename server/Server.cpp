@@ -6,37 +6,35 @@
 /*   By: shmimi <shmimi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/20 18:08:33 by shmimi            #+#    #+#             */
-/*   Updated: 2024/06/05 18:35:09 by shmimi           ###   ########.fr       */
+/*   Updated: 2024/06/06 21:05:47 by shmimi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Server.hpp"
-
-Server::Server(int port)
+#include <arpa/inet.h>
+Server::Server(int port, const std::string& host)
 {
     this->sockfd = socket(AF_INET, SOCK_STREAM, 0);
     if (this->sockfd == 0)
     {
-        perror("In socket");
-        exit(1);
+        throw std::runtime_error("Socket creation failed");
     }
+
     this->addrlen = sizeof(this->addr);
     addr.sin_family = AF_INET;
     addr.sin_port = htons(port);
-    addr.sin_addr.s_addr = INADDR_ANY;
+    addr.sin_addr.s_addr = inet_addr(host.c_str());
 
     int opt = 1;
     setsockopt(this->getSockfd(), SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
 
     if (bind(this->getSockfd(), (struct sockaddr *)&addr, sizeof(this->getAddr())) < 0)
     {
-        perror("Couldn't bind socket to the given address");
-        exit(1);
+        throw std::runtime_error("Bind failed");
     }
     if (listen(this->getSockfd(), 1000) < 0)
     {
-        perror("Listen");
-        exit(1);
+        throw std::runtime_error("Listen failed");
     }
 }
 

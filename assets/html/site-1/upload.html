@@ -5,61 +5,85 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="s.css">
-    <title>Vibrant Website</title>
-
+    <title>Nkhinx V1.0.0</title>
 </head>
 
 <body>
-    <!-- <img src="joanna-stolowicz-oq-Qiu2Yys0-unsplash.jpg" alt=""> -->
-    <header>
-        <h1>Vibrant Website</h1>
-    </header>
-    <form action="/CGIscripts/post.py" method="POST" enctype="multipart/form-data">
-        <input type="text" name="na">
-        <input type="text" name="va">
-        <button type="submit">Submit me</button>
-    </form>
+    <div class="container">
+        <header>
+            <h1>Nkhinx V1.0.0</h1>
+        </header>
+        <div class="image-container">
+            <img src="ser.png" alt="Sample Image">
+        </div>
+        <div class="main-form">
+            <form id="submitForm" action="/CGIscripts/post.py" method="POST" enctype="multipart/form-data">
+                <div class="method-container">
+                    <select id="methodSelect">
+                        <option value="POST">POST</option>
+                        <option value="GET">GET</option>
+                    </select>
+                </div>
+                <strong>Name:</strong><br>
+                <input type="text" name="na"><br><br>
+                <strong>Value:</strong><br>
+                <input type="text" name="va"><br><br>
+                <button type="button" onclick="submitForm()">Submit me</button>
+            </form>
+            <div class="buttons">
+                <button class="right-button boxing-site">Boxing Site</button>
+                <button class="right-button ecom-site">Ecom Site</button>
+                <button class="right-button 1337-site">Redirection Test 1 (http://1337.ma)</button>
+                <button class="right-button anotherServer-site">Redirection Test 2 (From one server to another)</button>
+            </div>
+        </div>
 
-    <br><br><br><br><br>
-    <form action="/CGIscripts/upload.py" method="POST" enctype="multipart/form-data">
-        <input type="file" name="file" multiple>
-        <button type="submit">Submit me</button>
-    </form>
-    <br><br><br><br><br>
+        <br><br><br><br><br>
+        <h2>Upload File</h2>
+        <form action="/CGIscripts/upload.py" method="POST" enctype="multipart/form-data">
+            <input type="file" name="file" multiple>
+            <button type="submit">Submit me</button>
+        </form>
+        <br><br><br><br><br>
+    </div>
+    <script>
+        function submitForm() {
+            var form = document.getElementById('submitForm');
+            var method = document.getElementById('methodSelect').value;
+            form.setAttribute('method', method);
 
-    <form action="/CGIscripts/get.py" method="GET" enctype="multipart/form-data">
-        <input type="text" name="na">
-        <input type="text" name="va">
-        <button type="submit">Submit me</button>
-    </form>
-
-    <main>
-        <section>
-            <h2>Welcome to our vibrant website!</h2>
-            <p>This is an example of a larger HTML website with more content and colors.</p>
-            <p>No images are used in this example.</p>
-        </section>
-
-        <section>
-            <h2>Our Services</h2>
-            <p>Explore our colorful range of services and discover what we have to offer.</p>
-        </section>
-
-        <section>
-            <h2>Contact Us</h2>
-            <p>Feel the energy and reach out to us if you have any questions or inquiries.</p>
-        </section>
-    </main>
-     <video width="740" height="420" controls>
-  	<source src="video.mp4" type="video/mp4">
-     </video>
-    <!-- <video width="500" height="500" controls>
-        <source src="video.mp4" type="video/mp4">
-      </video>  -->
-    <!-- <footer>
-        <p>&copy; 2024 Vibrant Website</p>
-    </footer> -->
+            if (method === 'GET') {
+                form.setAttribute('action', '/CGIscripts/get.py');
+            } else {
+                form.setAttribute('action', '/CGIscripts/post.py');
+            }
+            form.submit();
+        }
+    </script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            var buttons = document.querySelectorAll('.right-button');
+            buttons.forEach(function(button) {
+                button.addEventListener('click', function() {
+                    var className = this.className;
+                    var url;
+                    if (className.includes('boxing-site')) {
+                        console.log('boxing-site');
+                        url = "http://localhost/";
+                    } else if (className.includes('ecom-site')) {
+                        url = "http://localhost:8080";
+                    } else if (className.includes('1337-site')) {
+                        url = "https://www.1337.ma";
+                    } else if (className.includes('anotherServer-site')) {
+                        url = "/lol";
+                    }
+                    if (url) {
+                        window.open(url, "_blank");
+                    }
+                });
+            });
+        });
+    </script>
 </body>
 
 </html>
-

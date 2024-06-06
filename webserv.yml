@@ -1,11 +1,13 @@
 server :
-		listen  80 500 9000          
+		listen  5000 8989 7070
+		host 127.0.0.1      
 		server_name   hh     
 		root ./assets/html/site-1
 		index    index.html
 		client_max_body_size 5000000
 		allowed_methods GET POST DELETE 
 		autoindex on
+		error_page 404 ./assets/error/404.html
   server.location   /hehe/ :
 		redirect /hehe /lol
 		allowed_methods POST
@@ -19,7 +21,8 @@ server :
 		client_max_body_size 600
 		autoindex off
 server :
-		listen	8080 200
+		listen	8080 2000
+		host 10.11.5.7   
 		server_name hh
 		root ./assets/html/site-2
 		index index.html

@@ -6,7 +6,7 @@
 /*   By: shmimi <shmimi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/21 14:58:46 by shmimi            #+#    #+#             */
-/*   Updated: 2024/05/13 02:19:15 by shmimi           ###   ########.fr       */
+/*   Updated: 2024/06/06 20:07:55 by shmimi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,7 +36,7 @@ private:
     int port;
 
 public:
-    Server(int port);
+    Server(int port, const std::string& host);
     /************ Getters ***************/
     int getPort();
     int getSockfd();

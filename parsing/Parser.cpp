@@ -6,7 +6,7 @@
 /*   By: shmimi <shmimi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/16 22:50:03 by shmimi            #+#    #+#             */
-/*   Updated: 2024/06/05 20:58:28 by shmimi           ###   ########.fr       */
+/*   Updated: 2024/06/06 19:16:07 by shmimi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,6 +20,7 @@ Parser::~Parser(){}
 Parser::Parser(const std::string &filePath) : filePath(filePath)
 {
     this->allowedDirectives.push_back("listen"); //2
+    this->allowedDirectives.push_back("host"); //2
     this->allowedDirectives.push_back("server_name"); //2
     this->allowedDirectives.push_back("root"); //2
     this->allowedDirectives.push_back("index"); //2
@@ -135,6 +136,11 @@ int Parser::checkSyntax(std::vector<std::pair<std::string, std::vector<std::stri
             if (directives[i].second.size() < 1 || directives[i].second.size() > 1)
                 return 1;
         }
+        if (directives[i].first == "host")
+        {
+            if (directives[i].second.size() < 1 || directives[i].second.size() > 1)
+                return 1;
+        }
         if (directives[i].first == "autoindex")
         {
             if (directives[i].second.size() < 1 || directives[i].second.size() > 1)
@@ -209,10 +215,13 @@ void Parser::checkGlobalDuplicates(const std::vector<std::string>& keys)
     int uploadDir = 0;
     int clientMaxBodySize = 0;
     int redirect = 0;
+    int host = 0;
     for (size_t i = 0; i < keys.size(); i++)
     {
         if (keys[i] == "listen")
             listen++;
+        if (keys[i] == "host")
+            host++;
         if (keys[i] == "server_name")
             serverName++;
         if (keys[i] == "root")
@@ -230,7 +239,7 @@ void Parser::checkGlobalDuplicates(const std::vector<std::string>& keys)
         if (keys[i] == "redirect")
             redirect++;
     }
-    if (listen > 1 || redirect > 1 || serverName > 1 || root > 1 || index > 1 || allowedMethods > 1 || uploadDir > 1 || autoIndex > 1 || clientMaxBodySize > 1)
+    if (listen > 1 || host > 1 || redirect > 1 || serverName > 1 || root > 1 || index > 1 || allowedMethods > 1 || uploadDir > 1 || autoIndex > 1 || clientMaxBodySize > 1)
         throw std::runtime_error("Syntax error!");
 }
 
@@ -246,6 +255,8 @@ void Parser::checkLocationsDuplicates(const std::vector<std::string>& keys)
         if (keys[i] == "listen")
             throw std::runtime_error("Syntax error!");
         if (keys[i] == "server_name")
+            throw std::runtime_error("Syntax error!");
+        if (keys[i] == "host")
             throw std::runtime_error("Syntax error!");
         if (keys[i] == "root")
             root++;
@@ -369,6 +380,7 @@ void Parser::parse()
     {
         for (size_t j = 0; j < this->allServers[i].size(); j++)
         {
+            // std::cout << this->allServers[i][j].first << "  " << this->allServers[i][j].second[0] << "  " << this->allServers[i][j].second.size() << std::endl;
             if (this->allServers[i][j].first == "listen")
                 port++;
             if (this->allServers[i][j].first == "server.location")

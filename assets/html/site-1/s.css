@@ -1,0 +1,175 @@
+/* Global Styles */
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f0f0f0;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    /* Center the container */
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    /* Center align the content */
+}
+
+.image-container {
+    margin: 20px auto;
+}
+
+.image-container img {
+    max-width: 100%;
+    border-radius: 5px;
+}
+
+.main-form {
+    width: 80%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.main-form .buttons {
+    display: flex;
+    flex-direction: column;
+}
+.right-button {
+    font-size: 20px; /* Adjust the font size as needed */
+    padding: 10px 20px; /* Adjust the padding as needed */
+}
+
+/* Header Styles */
+header {
+    width: 300%;
+    background-color: #333;
+    color: #fff;
+    text-align: center;
+    padding: 20px 0;
+}
+
+h1 {
+    margin: 0;
+    font-size: 2.5rem;
+}
+
+/* Form Styles */
+form {
+    margin: 20px 0;
+    text-align: left;
+    /* Align text to the left inside the form */
+    display: inline-block;
+    /* Make form inline-block to keep the center alignment */
+}
+
+input[type="text"] {
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    width: 100%;
+    /* Ensure the input fields take the full width */
+    box-sizing: border-box;
+}
+
+button[type="button"],
+button[type="submit"] {
+    padding: 10px 20px;
+    background-color: #b700ff;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+button[type="button"]:hover,
+button[type="submit"]:hover {
+    background-color: rgb(174, 106, 195)0ff;
+}
+
+/* Main Section Styles */
+main {
+    padding: 20px;
+}
+
+section {
+    background-color: #fff;
+    padding: 20px;
+    margin-bottom: 20px;
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+h2 {
+    margin-top: 0;
+}
+
+p {
+    line-height: 1.6;
+}
+
+/* Footer Styles */
+footer {
+    background-color: #333;
+    color: #fff;
+    text-align: center;
+    padding: 20px 0;
+}
+
+/* Select and Form Styles */
+form select {
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    background-color: #fff;
+    cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    width: 100%;
+    /* Ensure the select takes the full width */
+    box-sizing: border-box;
+}
+
+form select:focus {
+    border-color: #333;
+    outline: none;
+}
+
+form button[type="button"] {
+    display: block;
+    width: 100%;
+    /* Ensure the button takes the full width */
+    box-sizing: border-box;
+}
+
+/* Button Container Styles */
+.button-container {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    position: absolute;
+    right: 20px;
+    top: 20px;
+}
+
+.right-button {
+    margin-bottom: 10px;
+    padding: 10px 20px;
+    background-color: #0fa31d;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.right-button:hover {
+    background-color: #555;
+}

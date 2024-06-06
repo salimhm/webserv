@@ -6,7 +6,7 @@
 /*   By: shmimi <shmimi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/21 15:10:14 by shmimi            #+#    #+#             */
-/*   Updated: 2024/06/05 21:59:02 by shmimi           ###   ########.fr       */
+/*   Updated: 2024/06/06 21:10:07 by shmimi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,12 +23,15 @@ std::vector<Server> setupServer(Config &config, std::vector<pollfd> &pollfds)
     std::vector<Server> servers;
     for (size_t i = 0; i < config.getPort().size(); i++)
     {
-        std::cout << "Listening on port " << config.getPort()[i] << std::endl;
-        Server server(config.getPort()[i]);
+        Server server(config.getPort()[i], config.getHost(config.getPort()[i]));
         server.setPort(config.getPort()[i]);
         pollfd clienSocket = server.addClient(server.getSockfd(), 1);
         servers.push_back(server);
         pollfds.push_back(clienSocket);
+    }
+    for (size_t i = 0; i < config.getPort().size(); i++)
+    {
+        std::cout << "Listening on " << config.getHost(config.getPort()[i]) << ":" << config.getPort()[i] << std::endl;
     }
     return servers;
 }
@@ -41,7 +44,6 @@ std::string getRequest(int clientSocket)
     if (data < 0)
     {
         perror("recv");
-        close(clientSocket);
         return "";
     }
     while (data > 0)
@@ -92,6 +94,7 @@ int main(int ac, char **av)
             std::string request;
 
             std::string response;
+            ssize_t bytes;
             while (1)
             {
                 try
@@ -120,8 +123,6 @@ int main(int ac, char **av)
                                         clients[k].setRequest(parseRequest(request));
                                         response = handleRequest(clients[k], config, request);
                                     }
-                                    else
-                                        close(clients[k].getClientFd());
                                 }
                             }
                             if (pollfds[j].fd == clients[k].getClientFd() && pollfds[j].revents & POLLOUT)
@@ -132,7 +133,7 @@ int main(int ac, char **av)
                                     clients[k].setBytesToSend(response.size() - clients[k].getBytesSent());
                                 }
                                 // std::cout << "Total Bytes => " << clients[k].getTotalBytes() << "  " << " BYTES TO SEND for " << k << "  " << clients[k].getBytesToSend() << std::endl;
-                                ssize_t bytes = send(clients[k].getClientFd(), response.c_str() + clients[k].getBytesSent(), clients[k].getBytesToSend(), 0);
+                                bytes = send(clients[k].getClientFd(), response.c_str() + clients[k].getBytesSent(), clients[k].getBytesToSend(), 0);
                                 clients[k].setBytesSent(clients[k].getBytesSent() + bytes);
                                 clients[k].setBytesToSend(clients[k].getBytesToSend() - bytes);
                                 if (bytes < 0)

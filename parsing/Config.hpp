@@ -6,7 +6,7 @@
 /*   By: shmimi <shmimi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/23 22:15:53 by shmimi            #+#    #+#             */
-/*   Updated: 2024/06/04 23:08:24 by shmimi           ###   ########.fr       */
+/*   Updated: 2024/06/06 20:03:18 by shmimi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,6 +23,7 @@ class Config: public Mime, public Parser
     private:
         std::vector<int> port;
         std::string serverName;
+        std::vector<std::string> host;
         std::string root;
         std::string index;
         std::vector<std::string> errorPage;
@@ -51,6 +52,7 @@ class Config: public Mime, public Parser
         
         /************ SETTERS ************/
         void setPort();
+        void setHost();
         void setServerName(int isLocation, const std::string &uri, const std::string& port);
         void setRoot(int isLocation, const std::string& uri, const std::string& port);
         void setErrorPage(int isLocation, const std::string& uri, const std::string& port);
@@ -64,6 +66,7 @@ class Config: public Mime, public Parser
         
         /************ GETTERS ************/
         const std::vector<int> getPort();
+        const std::string getHost(int port);
         const std::string getServerName();
         const std::string getRoot();
         const std::vector<std::string> getErrorPage();

@@ -6,7 +6,7 @@
 /*   By: shmimi <shmimi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/01 02:07:06 by shmimi            #+#    #+#             */
-/*   Updated: 2024/06/05 22:15:00 by shmimi           ###   ########.fr       */
+/*   Updated: 2024/06/06 18:09:04 by shmimi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -397,6 +397,16 @@ std::string handleRequest(Client &client, Config &config, std::string &request)
                 }
                 else // Handle files
                 {
+                    if (access(filePath.c_str(), R_OK) != 0) // File exists but not readable
+                    {
+                        if (isErrorPage.find("403") != isErrorPage.end())
+                        {
+                            generateResponse(client, config, response, isErrorPage["403"], "text/html", "403", "Forbidden", 0);
+                            return getResponse(response);
+                        }
+                        generateResponse(client, config, response, def.generateErrorPage("403"), "text/html", "403", "Forbidden", 1);
+                        return getResponse(response);
+                    }
                     generateResponse(client, config, response, filePathCpy, config.getContentType(getFileExtension(filePathCpy)), "200", "OK", 0);
                     return getResponse(response);
                 }
