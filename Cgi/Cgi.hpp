@@ -13,7 +13,7 @@ class Cgi
     public:
 
     Cgi(int filefd, std::string& request);
-    void postCgi(Client& client, Config &config);
+    const std::string postCgi(Client& client, Config &config);
     void getCgi(Client& client);
 };
 class Client;

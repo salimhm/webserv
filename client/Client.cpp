@@ -6,7 +6,7 @@
 /*   By: shmimi <shmimi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/25 00:04:21 by shmimi            #+#    #+#             */
-/*   Updated: 2024/06/05 17:37:59 by shmimi           ###   ########.fr       */
+/*   Updated: 2024/06/07 21:53:02 by shmimi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -114,4 +114,9 @@ void Client::setBytesToSend(const int& bytesToSend)
 void Client::setBytesSent(const int& bytesSent)
 {
     this->_bytesSent = bytesSent;
+}
+
+void Client::setBody(const std::string& body)
+{
+    this->request.body = body;
 }

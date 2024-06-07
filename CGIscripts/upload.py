@@ -27,3 +27,5 @@ for key in form.keys():
             with open(file_path, 'wb') as out_file:
                 shutil.copyfileobj(items.file, out_file)
             print(f"<h2>{filename} uploaded successfully.</h2>")
+# while True:
+#     pass

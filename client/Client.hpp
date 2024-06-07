@@ -6,7 +6,7 @@
 /*   By: shmimi <shmimi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/31 02:36:33 by shmimi            #+#    #+#             */
-/*   Updated: 2024/06/05 19:01:34 by shmimi           ###   ########.fr       */
+/*   Updated: 2024/06/08 00:14:35 by shmimi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,6 +42,8 @@ class Client: public Config
         int _bytesToSend;
         int _bytesSent;
 
+        int bytesRead;
+
     public:
         Client(const int clientFd, const std::string& filePath);
         /********** Getters *************/
@@ -63,6 +65,7 @@ class Client: public Config
         void setMethod(const std::string &method);
         void setUri(const std::string &uri);
         void setVersion(const std::string &version);
+        void setBody(const std::string& body);
 
         void setTotalBytes(const int &totalBytes);
         void setRemainingBytes(const int &remainingBytes);

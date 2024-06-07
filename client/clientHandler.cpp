@@ -6,7 +6,7 @@
 /*   By: shmimi <shmimi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/01 02:07:06 by shmimi            #+#    #+#             */
-/*   Updated: 2024/06/06 18:09:04 by shmimi           ###   ########.fr       */
+/*   Updated: 2024/06/08 00:12:06 by shmimi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,10 +42,24 @@ struct Request parseRequest(const std::string &request)
         // std::cout << "newUri => " << uri << std::endl;
 
         version = request.substr(pos2, pos3 - pos2 - 1);
+        // std::cout << "CRLF 2222 " << request.find("\r\n\r\n", crlf + 1) << std::endl;
         body = request.substr(crlf + 4);
+        // int pos23 = body.find("filename=\"a.jpg\"");
+        // if (pos23 != std::string::npos)
+        // {
+        //     body.replace(pos23, 16, "filename=\"zzzzz.jpg\"");
+        // }
 
-        headerString = request.substr(request.find("\r\n"), crlf - body.size() - 2);
+        // std::cout << "*****************\n";
+        // std::cout << request << std::endl;
+        // std::cout << "*****************\n";
 
+        // std::cout << "Hello " << request.find("\r\n") << std::endl;
+        headerString = request.substr(request.find("\r\n") + 2, crlf - body.size() -2);
+
+        // std::cout << "*****************\n";
+        // std::cout << "BODDDYYYYYY >>>>>>>> " << body.size() << "  " << body << std::endl;
+        // std::cout << "*****************\n";
         size_t posHeader = 2;
         int pos = headerString.find("\n", posHeader);
         int start = 0;
@@ -64,10 +78,19 @@ struct Request parseRequest(const std::string &request)
                 break;
             headers.push_back(std::make_pair(key, value));
         }
-        for (size_t i = 0; i < headers.size(); i++)
+        // headers[0].first = headers[0].first.substr(2, headers[0].first.length()-1);
+        std::string temp;
+        std::string key;
+        size_t i;
+        for (i = 0; i < headers.size(); i++)
         {
-            // std::cout << headers[i].first << "=>" << headers[i].second << std::endl;
-            httpRequest.headers_map[headers[i].first] = headers[i].second;
+            for (size_t j = 0; j < headers[i].first.size(); j++)
+            {
+                temp = std::tolower(headers[i].first[j]);
+                key.append(temp);
+            }
+            httpRequest.headers_map[key] = headers[i].second;
+            key.clear();
         }
 
         for (size_t i = 0; i < headers.size(); i++)
@@ -144,15 +167,32 @@ std::string readFile(std::string filePath)
     return content;
 }
 
-std::string getResponse(Response responseObj)
+std::string getResponse(Response& responseObj)
 {
     std::string response;
     // std::string response = "HTTP/1.1 200 OK\nContent-Type: text/text\nContent-Length: 21\n\nHelloThisisfrom lolol";
 
     if (!responseObj.getHeaders().empty())
-        response += responseObj.getHttpVersion() + " " + responseObj.getStatus() + " " + responseObj.getStatusMessage() + "\r\n" + responseObj.getContentType() + "\r\n" + responseObj.getContentLength() + "\r\n" + responseObj.getHeaders() + "\r\n\r\n" + responseObj.getBody();
+    {
+        response += responseObj.getHttpVersion() + " " + responseObj.getStatus() + " " + responseObj.getStatusMessage() + "\r\n";
+        response += "Server: Nkhinx/V1.0.0\r\n";
+        response += responseObj.getContentType() + "\r\n";
+        response += responseObj.getContentLength() + "\r\n";
+        response += responseObj.getHeaders() + "\r\n\r\n";
+        response += responseObj.getBody();
+        // response.append(responseObj.getBody());
+    }
     else
-        response += responseObj.getHttpVersion() + " " + responseObj.getStatus() + " " + responseObj.getStatusMessage() + "\r\n" + responseObj.getContentType() + "\r\n" + responseObj.getContentLength() + "\r\n\r\n" + responseObj.getBody();
+    {
+        // response += responseObj.getHttpVersion() + " " + responseObj.getStatus() + " " + responseObj.getStatusMessage() + "\r\n";
+        // response += "Server: Nkhinx/V1.0.0\r\n";
+        // response += responseObj.getContentType() + "\r\n";
+        // response += responseObj.getContentLength() + "\r\n\r\n";
+        // // response += responseObj.getBody();
+        // response.append(responseObj.getBody());
+        // response.append(responseObj.getBody(), responseObj.getBody().size());
+        response += responseObj.getHttpVersion() + " " + responseObj.getStatus() + " " + responseObj.getStatusMessage() + "\r\n" + "Server: Nkhinx/V1.0.0" + "\r\n" + responseObj.getContentType() + "\r\n" + responseObj.getContentLength() + "\r\n\r\n" + responseObj.getBody();
+    }
     return response;
 }
 
@@ -188,7 +228,6 @@ void generateResponse(Client& client, Config& config, Response &response, const 
         response.setHeaders("Location: " + config.getRedirect()[1]);
         response.setStatus("301");
         response.setStatusMessage("Moved Permanently");
-        // res
     }
     // std::cout << "Headers ==> " << response.getHeaders().size() << std::endl;
 }
@@ -339,7 +378,7 @@ std::string handleRequest(Client &client, Config &config, std::string &request)
     //     std::cout << it->first << " => " << it->second << std::endl;
     // }
     
-	std::cout << "AllowedMethods => " << allowedMethods.size() << std::endl;
+	// std::cout << "AllowedMethods => " << allowedMethods.size() << std::endl;
     // for (std::map<std::string, int>::iterator it = allowedMethods.begin(); it != allowedMethods.end(); it++)
     // {
     //     std::cout << it->first << " => " << it->second << std::endl;
@@ -469,9 +508,46 @@ std::string handleRequest(Client &client, Config &config, std::string &request)
     }
     else if (client.getMethod() == "POST" && allowedMethods["POST"])
     {
-        cgi.postCgi(client, config);
-        generateResponse(client, config, response, "./responsepostCGI.html", "text/html", "200", "OK", 0);
-        return getResponse(response);
+        if (cgi.postCgi(client, config) == "502")
+        {
+            if (isErrorPage.find("502") != isErrorPage.end())
+            {
+                generateResponse(client, config, response, isErrorPage["502"], "text/html", "502", "Bad Gateway", 0);
+                return getResponse(response);
+            }
+            generateResponse(client, config, response, def.generateErrorPage("502"), "text/html", "502", "Bad Gateway", 1);
+            return getResponse(response);
+        }
+        else if (cgi.postCgi(client, config) == "504")
+        {
+            if (isErrorPage.find("504") != isErrorPage.end())
+            {
+                generateResponse(client, config, response, isErrorPage["504"], "text/html", "504", "Gateway Timeout", 0);
+                return getResponse(response);
+            }
+            generateResponse(client, config, response, def.generateErrorPage("504"), "text/html", "504", "Gateway Timeout", 1);
+            // std::cout << getResponse(response) << std::endl;
+            return getResponse(response);
+        }
+        else if (cgi.postCgi(client, config) == "413")
+        {
+            std::cout << "CGI\n";
+            if (isErrorPage.find("413") != isErrorPage.end())
+            {
+                generateResponse(client, config, response, isErrorPage["413"], "text/html", "413", "Payload Too Large", 0);
+                return getResponse(response);
+            }
+            generateResponse(client, config, response, def.generateErrorPage("413"), "text/html", "413", "Payload Too Large", 1);
+            // std::cout << getResponse(response) << std::endl;
+            return getResponse(response);
+        }
+        else
+        {
+            generateResponse(client, config, response, "./responsepostCGI.html", "text/html", "200", "OK", 0);
+            // std::cout << "Response => " << getResponse(response) << std::endl;
+            return getResponse(response);
+            
+        }
     }
     else
     {
