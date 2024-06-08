@@ -6,7 +6,7 @@
 /*   By: shmimi <shmimi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/31 02:36:33 by shmimi            #+#    #+#             */
-/*   Updated: 2024/06/08 00:14:35 by shmimi           ###   ########.fr       */
+/*   Updated: 2024/06/08 21:02:14 by shmimi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,19 +18,19 @@
 
 class Config;
 
-struct Request
-{
-    std::vector<std::string> startLine;
-    std::vector< std::pair<std::string, std::string> > headers;
-    std::map <std::string, std::string> headers_map;
-    std::string body;
-    std::string port;
-};
+// struct Request
+// {
+//     std::vector<std::string> startLine;
+//     std::vector< std::pair<std::string, std::string> > headers;
+//     std::map <std::string, std::string> headers_map;
+//     std::string body;
+//     std::string port;
+// };
 
 class Client: public Config
 {
     private:
-        Request request;
+        // Request request;
         int clientFd;
 
         std::string _method;
@@ -42,9 +42,20 @@ class Client: public Config
         int _bytesToSend;
         int _bytesSent;
 
-        int bytesRead;
+
 
     public:
+
+        std::vector<std::string> startLine;
+        std::vector< std::pair<std::string, std::string> > headers;
+        std::map <std::string, std::string> headers_map;
+        std::string body;
+        std::string port;
+
+        int crlf;
+        std::string bytesRead;
+        int headersParsed;
+
         Client(const int clientFd, const std::string& filePath);
         /********** Getters *************/
         int getClientFd() const;
@@ -71,6 +82,6 @@ class Client: public Config
         void setRemainingBytes(const int &remainingBytes);
         void setBytesToSend(const int& bytesToSend);
         void setBytesSent(const int& bytesSent);
-        void setRequest(const Request &request);
+        // void setRequest(const std::string &request);
 
 };

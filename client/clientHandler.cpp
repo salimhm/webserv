@@ -6,7 +6,7 @@
 /*   By: shmimi <shmimi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/01 02:07:06 by shmimi            #+#    #+#             */
-/*   Updated: 2024/06/08 00:12:06 by shmimi           ###   ########.fr       */
+/*   Updated: 2024/06/08 22:38:27 by shmimi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,126 +15,90 @@
 #include "../server/Default.hpp"
 #include <sstream>
 
-struct Request parseRequest(const std::string &request)
+int getHeaders(const std::string& request, Client& client)
+{
+    std::string method;
+    std::string uri;
+    std::string version;
+    std::vector<std::pair<std::string, std::string> > headers;
+
+    std::string headerString;
+
+    int pos1 = request.find(' ') + 1;
+    int pos2 = request.find(' ', pos1) + 1;
+    int pos3 = request.find('\n', pos2);
+    client.crlf = request.find("\r\n\r\n");
+
+    headerString = request.substr(request.find("\r\n") + 2, client.crlf - request.find("\r\n") - 2);
+    size_t posHeader = 2;
+    int pos = headerString.find("\n", posHeader);
+    int start = 0;
+    int semiColon = 0;
+    while (posHeader != std::string::npos)
+    {
+        posHeader++;
+        pos = headerString.find("\n", posHeader);
+        posHeader = headerString.find("\n", pos);
+        std::string header = headerString.substr(start, posHeader - start - 1);
+        start = posHeader + 1;
+        semiColon = header.find_first_of(":");
+        std::string key = header.substr(0, semiColon);
+        std::string value = header.substr(semiColon + 1);
+        if (semiColon < 0)
+            break;
+        headers.push_back(std::make_pair(key, value));
+    }
+    // headers[0].first = headers[0].first.substr(2, headers[0].first.length()-1);
+    std::string temp;
+    std::string key;
+    size_t i;
+    for (i = 0; i < headers.size(); i++)
+    {
+        for (size_t j = 0; j < headers[i].first.size(); j++)
+        {
+            temp = std::tolower(headers[i].first[j]);
+            key.append(temp);
+        }
+        client.headers_map[key] = headers[i].second;
+        key.clear();
+    }
+    
+    method = request.substr(0, pos1 - 1);
+    uri = request.substr(pos1, pos2 - pos1 - 1);
+    uri = normalizeUrl(uri);
+    version = request.substr(pos2, pos3 - pos2 - 1);
+
+    client.startLine.push_back(method);
+    client.startLine.push_back(uri);
+    client.startLine.push_back(version);
+
+    client.headers = headers;
+    client.headersParsed++;
+    return 1;
+}
+
+std::string parseRequest(Client& client, const std::string &request)
 {
     try
     {
-        struct Request httpRequest;
-
-        std::string method;
-        std::string uri;
-        std::string version;
         std::string body;
-        std::vector<std::pair<std::string, std::string> > headers;
-
-        std::string headerString;
-
-        int pos1 = request.find(' ') + 1;
-        int pos2 = request.find(' ', pos1) + 1;
-        int pos3 = request.find('\n', pos2);
-        int crlf = request.find("\r\n\r\n");
-
-        method = request.substr(0, pos1 - 1);
-        uri = request.substr(pos1, pos2 - pos1 - 1);
-
-        uri = normalizeUrl(uri);
-
-        // std::cout << "newUri => " << uri << std::endl;
-
-        version = request.substr(pos2, pos3 - pos2 - 1);
-        // std::cout << "CRLF 2222 " << request.find("\r\n\r\n", crlf + 1) << std::endl;
-        body = request.substr(crlf + 4);
-        // int pos23 = body.find("filename=\"a.jpg\"");
-        // if (pos23 != std::string::npos)
-        // {
-        //     body.replace(pos23, 16, "filename=\"zzzzz.jpg\"");
-        // }
-
-        // std::cout << "*****************\n";
-        // std::cout << request << std::endl;
-        // std::cout << "*****************\n";
-
-        // std::cout << "Hello " << request.find("\r\n") << std::endl;
-        headerString = request.substr(request.find("\r\n") + 2, crlf - body.size() -2);
-
-        // std::cout << "*****************\n";
-        // std::cout << "BODDDYYYYYY >>>>>>>> " << body.size() << "  " << body << std::endl;
-        // std::cout << "*****************\n";
-        size_t posHeader = 2;
-        int pos = headerString.find("\n", posHeader);
-        int start = 0;
-        int semiColon = 0;
-        while (posHeader != std::string::npos)
+        
+        if (!client.headersParsed)
         {
-            posHeader++;
-            pos = headerString.find("\n", posHeader);
-            posHeader = headerString.find("\n", pos);
-            std::string header = headerString.substr(start, posHeader - start - 1);
-            start = posHeader + 1;
-            semiColon = header.find_first_of(":");
-            std::string key = header.substr(0, semiColon);
-            std::string value = header.substr(semiColon + 1);
-            if (semiColon < 0)
-                break;
-            headers.push_back(std::make_pair(key, value));
+            getHeaders(request, client);
+            client.headersParsed = true;
+            body = request.substr(client.crlf + 4);
         }
-        // headers[0].first = headers[0].first.substr(2, headers[0].first.length()-1);
-        std::string temp;
-        std::string key;
-        size_t i;
-        for (i = 0; i < headers.size(); i++)
-        {
-            for (size_t j = 0; j < headers[i].first.size(); j++)
-            {
-                temp = std::tolower(headers[i].first[j]);
-                key.append(temp);
-            }
-            httpRequest.headers_map[key] = headers[i].second;
-            key.clear();
-        }
-
-        for (size_t i = 0; i < headers.size(); i++)
-        {
-            if (headers[i].first == "\r\nHost")
-            {
-                size_t pos = headers[i].second.find(":");
-                if (pos != std::string::npos)
-                {
-                    httpRequest.port = headers[i].second.substr(pos + 1);
-                    break;
-                }
-                else
-                {
-                    httpRequest.port = "80";
-                    break;
-                }
-            }
-        }
-        // std::cout << "Port => " << httpRequest.port << "  " << httpRequest.port.size() << std::endl;
-
-        // std::cout << "************ Printing headers *************";
-        // for (size_t i = 0; i < headers.size(); i++)
-        // {
-        //     std::cout << headers[i].first << "=>" << headers[i].second << std::endl;
-        // }
-        // std::cout << "************ END Printing headers *************\n";
-
-        httpRequest.startLine.push_back(method);
-        httpRequest.startLine.push_back(uri);
-        httpRequest.startLine.push_back(version);
-
-        httpRequest.headers = headers;
 
         if (body.size() > 0)
-            httpRequest.body = body;
+            client.body = body;
 
-        return httpRequest;
     }
     catch (const std::exception &e)
     {
         std::cerr << e.what() << std::endl;
     }
-    return Request();
+    return "";
 }
 
 std::string getFileExtension(const std::string &filePath)
@@ -366,7 +330,6 @@ std::string handleRequest(Client &client, Config &config, std::string &request)
 	// std::cout << "Root => " << root << std::endl;
 	// std::cout << "autoIndex => " << config.getAutoIndex() << std::endl;
 	// std::cout << "index => " << index << std::endl;
-	// std::cout << "Errorcode => " << errorCode << std::endl;
 	// std::cout << "uploadDir => " << config.getUploadDir() << std::endl;
 	// std::cout << "serverName => " << config.getServerName() << std::endl;
     // if (config.getRedirect().size())
@@ -384,6 +347,7 @@ std::string handleRequest(Client &client, Config &config, std::string &request)
     //     std::cout << it->first << " => " << it->second << std::endl;
     // }
 
+    std::cout << "Method => " << client.getMethod() << std::endl;
     if (client.getMethod() == "GET" && allowedMethods["GET"])
     {
         if (client.getUri().find("/CGIscripts/get.py") != std::string::npos)

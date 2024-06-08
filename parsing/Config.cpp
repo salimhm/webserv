@@ -6,7 +6,7 @@
 /*   By: shmimi <shmimi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/23 22:19:25 by shmimi            #+#    #+#             */
-/*   Updated: 2024/06/06 21:07:02 by shmimi           ###   ########.fr       */
+/*   Updated: 2024/06/08 22:44:16 by shmimi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -61,6 +61,7 @@ size_t Config::getPortIndex(const std::string &port)
             {
                 if (this->servers[i][j].second[p] == port)
                 {
+                    // std::cout << "???????n >>" << i << " " << j << std::endl;
                     return i;
                 }
             }
@@ -250,6 +251,7 @@ void Config::setRoot(int isLocation, const std::string &uri, const std::string& 
     this->root.clear();
     
     size_t portIndex = getPortIndex(port);
+    std::cout << "port Index " << portIndex << std::endl;
     // std::cout << "isLocation " << isLocation << "    " << uri << " isLocation\n";
     if (!isLocation)
     {

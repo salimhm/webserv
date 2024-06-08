@@ -6,7 +6,7 @@
 /*   By: shmimi <shmimi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/21 15:10:14 by shmimi            #+#    #+#             */
-/*   Updated: 2024/06/08 00:13:32 by shmimi           ###   ########.fr       */
+/*   Updated: 2024/06/08 22:45:47 by shmimi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,29 +36,58 @@ std::vector<Server> setupServer(Config &config, std::vector<pollfd> &pollfds)
     return servers;
 }
 
-std::string getRequest(int clientSocket)
+std::string getRequest(Client &client)
 {
     char buffer[1024] = {0};
-    int data = recv(clientSocket, buffer, sizeof(buffer), 0);
-    std::string request;
-    request.append(buffer, data);
-    // std::string request(buffer);
+    int data = recv(client.getClientFd(), buffer, sizeof(buffer), 0);
     if (data < 0)
     {
         perror("recv");
         return "";
     }
-    while (data > 0)
+
+    std::string request(buffer, data);
+    client.bytesRead.append(request);
+
+    if (!client.headersParsed)
     {
-        data = recv(clientSocket, buffer, sizeof(buffer), 0);
-        if (data > 0)
-            request.append(buffer, data);
-            // request.append(buffer, data);
+        std::cout << "Parsing headers for client " << client.getClientFd() << std::endl;
+        if (getHeaders(client.bytesRead, client))
+        {
+            std::cout << "Headers parsed for client " << client.getClientFd() << std::endl;
+            client.headersParsed = true;
+        }
     }
-    // std::cout << "***************REQUEST***************\n";
-    // std::cout << request.size() << std::endl;
-    // std::cout << "***************END REQUEST***************\n";
-    return request;
+
+    if (client.headersParsed)
+    {
+        std::map<std::string, std::string> headers = client.getHeadersmap();
+        if (headers.find("content-length") != headers.end())
+        {
+            size_t contentLength = std::stoul(headers["content-length"]);
+            size_t remainingBody = contentLength - client.body.size();
+            // std::cout << "Content-Length: " << contentLength << ", Bytes Read: " << client.bytesRead.size() << ", Remaining Body: " << remainingBody << ", Body Size: " << client.body.size() << std::endl;
+
+            if (client.bytesRead.size() >= remainingBody)
+            {
+                std::cout << "Full body received for client " << client.getClientFd() << "  " << client.body.size() << std::endl;
+                client.body.append(client.bytesRead.substr(0, remainingBody));
+                client.bytesRead.erase(0, remainingBody);
+            }
+            else
+            {
+                client.body.append(client.bytesRead);
+                client.bytesRead.clear();
+            }
+        }
+        else
+        {
+            client.body.append(client.bytesRead);
+            client.bytesRead.clear();
+        }
+    }
+
+    return client.body;
 }
 
 int handleNewConnection(Server &server, std::vector<pollfd> &pollfds, std::vector<Client> &clients, std::string &filePath)
@@ -98,7 +127,7 @@ int main(int ac, char **av)
 
             std::string response;
             ssize_t bytes;
-            std::map <std::string, std::string> headers;
+            std::map<std::string, std::string> headers;
             while (1)
             {
                 try
@@ -120,11 +149,22 @@ int main(int ac, char **av)
                         {
                             if (pollfds[j].fd == clients[k].getClientFd() && pollfds[j].revents & POLLIN)
                             {
+                                request = getRequest(clients[k]);
+                                std::map<std::string, std::string> headers = clients[k].getHeadersmap();
+                                if (clients[k].headersParsed)
                                 {
-                                    request = getRequest(clients[k].getClientFd());
-                                    if (request.size() > 0)
+                                    if (clients[k].startLine[0] == "POST")
                                     {
-                                        clients[k].setRequest(parseRequest(request));
+                                        size_t contentLength = std::stoul(headers["content-length"]);
+                                        if (clients[k].body.size() >= contentLength)
+                                        {
+                                            response = handleRequest(clients[k], config, request);
+                                        }
+                                        else
+                                            continue;
+                                    }
+                                    else if (clients[k].startLine[0] == "GET")
+                                    {
                                         response = handleRequest(clients[k], config, request);
                                     }
                                 }
