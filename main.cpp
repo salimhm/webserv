@@ -6,7 +6,7 @@
 /*   By: shmimi <shmimi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/21 15:10:14 by shmimi            #+#    #+#             */
-/*   Updated: 2024/06/09 15:41:27 by shmimi           ###   ########.fr       */
+/*   Updated: 2024/06/09 16:13:38 by shmimi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -56,12 +56,12 @@ std::string getRequest(Client &client)
     // std::cout << "Request: " << request << std::endl;
     // std::cout << "*****************\n";
 
-    client.bytesRead.append(request);
+    client.setBytesRead(request);
 
     if (!client.getIsHeaderParser())
     {
         // std::cout << "Parsing headers for client " << client.getClientFd() << std::endl;
-        if (getHeaders(client.bytesRead, client))
+        if (getHeaders(client.getBytesRead(), client))
         {
             // std::cout << "Headers parsed for client " << client.getClientFd() << std::endl;
             client.setisHeaderParser();
@@ -79,29 +79,27 @@ std::string getRequest(Client &client)
         {
             
             size_t contentLength = std::stoul(headers["content-length"]);
-            size_t remainingBody = contentLength - client.body.size();
-            // std::cout << "Content-Length: " << contentLength << ", Bytes Read: " << client.bytesRead.size() << ", Remaining Body: " << remainingBody << ", Body Size: " << client.body.size() << std::endl;
-
-            if (client.bytesRead.size() >= remainingBody)
+            size_t remainingBody = contentLength - client.getBody().size();
+            if (client.getBytesRead().size() >= remainingBody)
             {
-                // std::cout << "Full body received for client " << " " << contentLength << "  " << client.getClientFd() << "  " << client.body.size() << "  " << remainingBody << std::endl;
-                client.body.append(client.bytesRead.substr(0, remainingBody));
-                client.bytesRead.erase(0, remainingBody);
+                client.setBody(client.getBytesRead().substr(0, remainingBody));
+                client.getBytesRead().erase(0, remainingBody);
             }
             else
             {
-                client.body.append(client.bytesRead);
-                client.bytesRead.clear();
+                client.setBody(client.getBytesRead());
+                client.getBytesRead().clear();
             }
         }
         else
         {
-            client.body.append(client.bytesRead);
-            client.bytesRead.clear();
+            client.setBody(client.getBytesRead());
+            client.getBytesRead().clear();
         }
     }
-    client.allRequest.append(request);
-    return client.body;
+    client.setAllRequest(request);
+    // client.allRequest.append(request);
+    return client.getBody();
 }
 
 int handleNewConnection(Server &server, std::vector<pollfd> &pollfds, std::vector<Client> &clients, std::string &filePath)
@@ -170,7 +168,7 @@ int main(int ac, char **av)
                                     if (clients[k].getMethod() == "POST")
                                     {
                                         size_t contentLength = std::stoul(headers["content-length"]);
-                                        if (clients[k].body.size() >= contentLength)
+                                        if (clients[k].getBody().size() >= contentLength)
                                         {
                                             // std::cout << clients[k].body << std::endl;
                                             response = handleRequest(clients[k], config, request);

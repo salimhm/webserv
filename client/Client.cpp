@@ -6,7 +6,7 @@
 /*   By: shmimi <shmimi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/25 00:04:21 by shmimi            #+#    #+#             */
-/*   Updated: 2024/06/09 15:42:22 by shmimi           ###   ########.fr       */
+/*   Updated: 2024/06/09 16:13:29 by shmimi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -116,7 +116,8 @@ void Client::setBytesSent(const int& bytesSent)
 
 void Client::setBody(const std::string& body)
 {
-    this->body = body;
+    // this->body = body;
+    this->body.append(body);
 }
 
 void Client::setPort(const std::string& port)
@@ -154,6 +155,11 @@ void Client::setBytesRead(const std::string& bytesRead)
     this->bytesRead.append(bytesRead);
 }
 
+std::string& Client::getBytesRead()
+{
+    return this->bytesRead;
+}
+
 void Client::setisHeaderParser()
 {
     this->headersParsed = 1;
@@ -163,4 +169,15 @@ void Client::setisHeaderParser()
 int Client::getIsHeaderParser()
 {
     return this->headersParsed;
+}
+
+
+void Client::setAllRequest(std::string& allRequest)
+{
+    this->allRequest.append(allRequest);
+}
+
+std::string Client::getAllRequest()
+{
+    return this->allRequest;
 }

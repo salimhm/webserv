@@ -6,7 +6,7 @@
 /*   By: shmimi <shmimi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/05 15:47:13 by abouram           #+#    #+#             */
-/*   Updated: 2024/06/09 15:45:48 by shmimi           ###   ########.fr       */
+/*   Updated: 2024/06/09 16:13:33 by shmimi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -71,9 +71,9 @@ const std::string Cgi::postCgi(Client &client, Config &config)
     std::string boundry = "CONTENT_TYPE=" + headers["content-type"].erase(0, 1);
     std::string method = "REQUEST_METHOD=POST";
     std::stringstream ss;
-    ss << client.allRequest.size();
+    ss << client.getAllRequest().size();
     std::string content_len = "CONTENT_LENGTH=" + ss.str();
-    std::string parspath = client.allRequest;
+    std::string parspath = client.getAllRequest();
     std::string path =  "." + parspath.substr(parspath.find("POST") + 5, parspath.find(" H") - (parspath.find("POST") + 5));
     std::string body = client.getBody();
 
@@ -116,7 +116,7 @@ const std::string Cgi::postCgi(Client &client, Config &config)
         }
         else
         {
-            write(tmpinfile, client.allRequest.c_str(), client.allRequest.size());
+            write(tmpinfile, client.getAllRequest().c_str(), client.getAllRequest().size());
             close(tmpinfile);
             tmpinfile = open("/tmp/in.txt", O_RDONLY, 0777);
             start = clock();

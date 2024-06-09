@@ -6,7 +6,7 @@
 /*   By: shmimi <shmimi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/31 02:36:33 by shmimi            #+#    #+#             */
-/*   Updated: 2024/06/09 15:45:15 by shmimi           ###   ########.fr       */
+/*   Updated: 2024/06/09 16:12:07 by shmimi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -48,11 +48,11 @@ class Client: public Config
         std::string port;
         int crlf;
         int headersParsed;
+        std::string body;
+        std::string bytesRead;      
 
 
     public:
-        std::string body;
-        std::string bytesRead;      
         std::string allRequest;
 
         Client(const int clientFd, const std::string& filePath);
@@ -72,8 +72,9 @@ class Client: public Config
         const int &getBytesSent();
 
         int getCrLf();
-        const std::string& getBytesRead();
+        std::string& getBytesRead();
         int getIsHeaderParser();
+        std::string getAllRequest();
         /********** Setters *************/
         void setPort(const std::string& port);
         void setMethod(const std::string &method);
@@ -92,4 +93,5 @@ class Client: public Config
         void setCrLf(int crlf);
         void setBytesRead(const std::string& bytesRead);
         void setisHeaderParser();
+        void setAllRequest(std::string& allRequest);
 };
