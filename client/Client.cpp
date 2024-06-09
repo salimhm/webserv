@@ -6,7 +6,7 @@
 /*   By: shmimi <shmimi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/25 00:04:21 by shmimi            #+#    #+#             */
-/*   Updated: 2024/06/09 02:28:24 by shmimi           ###   ########.fr       */
+/*   Updated: 2024/06/09 15:42:22 by shmimi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,7 +45,7 @@ const std::map<std::string, std::string>& Client::getHeadersmap() const
 
 const std::string& Client::getBody() const
 {
-    return body;
+    return this->body;
 }
 
 const std::string& Client::getMethod() const
@@ -132,4 +132,35 @@ void Client::addStartLine(const std::string& line)
 void Client::setHeaders(const std::vector< std::pair<std::string, std::string> >& headers)
 {
     this->headers = headers;
+}
+
+void Client::setHeadersMap(const std::map <std::string, std::string>& headers_map)
+{
+    this->headers_map = headers_map;
+}
+
+void Client::setCrLf(int crlf)
+{
+    this->crlf = crlf;
+}
+
+int Client::getCrLf()
+{
+    return this->crlf;
+}
+
+void Client::setBytesRead(const std::string& bytesRead)
+{
+    this->bytesRead.append(bytesRead);
+}
+
+void Client::setisHeaderParser()
+{
+    this->headersParsed = 1;
+}
+
+
+int Client::getIsHeaderParser()
+{
+    return this->headersParsed;
 }

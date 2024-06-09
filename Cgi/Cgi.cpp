@@ -6,7 +6,7 @@
 /*   By: shmimi <shmimi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/05 15:47:13 by abouram           #+#    #+#             */
-/*   Updated: 2024/06/09 01:01:19 by shmimi           ###   ########.fr       */
+/*   Updated: 2024/06/09 15:45:48 by shmimi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -132,7 +132,7 @@ const std::string Cgi::postCgi(Client &client, Config &config)
                 while (!waitpid(pid, &status, WNOHANG))
                 {
                     end = clock();
-                    if ((end - start) / CLOCKS_PER_SEC > 5)
+                    if ((end - start) / CLOCKS_PER_SEC > 15)
                     {
                         kill(pid, SIGKILL);
                         return "504";

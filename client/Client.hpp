@@ -6,7 +6,7 @@
 /*   By: shmimi <shmimi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/31 02:36:33 by shmimi            #+#    #+#             */
-/*   Updated: 2024/06/09 02:27:41 by shmimi           ###   ########.fr       */
+/*   Updated: 2024/06/09 15:45:15 by shmimi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,18 +44,15 @@ class Client: public Config
 
         std::vector<std::string> startLine;
         std::vector< std::pair<std::string, std::string> > headers;
+        std::map <std::string, std::string> headers_map;
+        std::string port;
+        int crlf;
+        int headersParsed;
 
 
     public:
-
-        std::map <std::string, std::string> headers_map;
         std::string body;
-        std::string port;
-
-        int crlf;
-        std::string bytesRead;
-        int headersParsed;
-        
+        std::string bytesRead;      
         std::string allRequest;
 
         Client(const int clientFd, const std::string& filePath);
@@ -73,6 +70,10 @@ class Client: public Config
         const int &getTotalBytes();
         const int &getBytesToSend();
         const int &getBytesSent();
+
+        int getCrLf();
+        const std::string& getBytesRead();
+        int getIsHeaderParser();
         /********** Setters *************/
         void setPort(const std::string& port);
         void setMethod(const std::string &method);
@@ -87,4 +88,8 @@ class Client: public Config
 
         void addStartLine(const std::string& line);
         void setHeaders(const std::vector< std::pair<std::string, std::string> >& headers);
+        void setHeadersMap(const std::map <std::string, std::string>& headers_map);
+        void setCrLf(int crlf);
+        void setBytesRead(const std::string& bytesRead);
+        void setisHeaderParser();
 };

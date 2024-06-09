@@ -6,7 +6,7 @@
 /*   By: shmimi <shmimi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/23 22:19:25 by shmimi            #+#    #+#             */
-/*   Updated: 2024/06/09 02:07:07 by shmimi           ###   ########.fr       */
+/*   Updated: 2024/06/09 15:28:53 by shmimi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -76,7 +76,7 @@ void Config::setRedirect(int isLocation, const std::string &uri, const std::stri
     this->redirect.clear();
     
     size_t portIndex = getPortIndex(port);
-    std::cout << "port>>" << port << std::endl;
+    // std::cout << "port>>" << port << std::endl;
     if (!isLocation)
     {
         for (size_t j = 0; j < this->servers[portIndex].size(); j++)
@@ -561,11 +561,20 @@ void Config::setClientMaxBodySize(int isLocation, const std::string &uri, const 
     {
         for (size_t j = 0; j < this->servers[portIndex].size(); j++)
         {
-            if (this->servers[portIndex][j].first == "client_max_body_size")
+            for (size_t i = 0; i < this->globalDirectives.size(); i++)
             {
-                this->clientMaxBodySize = this->servers[portIndex][j].second[0];
-                return;
+                if (this->globalDirectives[i].first == "client_max_body_size")
+                {
+                    this->clientMaxBodySize = this->globalDirectives[i].second[0];
+                    return;
+                }
             }
+            // if (this->servers[portIndex][j].first == "client_max_body_size")
+            // {
+            //     std::cout << "Heeeere\n";
+            //     this->clientMaxBodySize = this->servers[portIndex][j].second[0];
+            //     return;
+            // }
         }
     }
     else

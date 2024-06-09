@@ -6,7 +6,7 @@
 /*   By: shmimi <shmimi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/01 02:07:06 by shmimi            #+#    #+#             */
-/*   Updated: 2024/06/09 02:28:48 by shmimi           ###   ########.fr       */
+/*   Updated: 2024/06/09 15:43:35 by shmimi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,15 +21,18 @@ int getHeaders(const std::string& request, Client& client)
     std::string uri;
     std::string version;
     std::vector<std::pair<std::string, std::string> > headers;
+    std::map <std::string, std::string> headers_map;
 
     std::string headerString;
 
     int pos1 = request.find(' ') + 1;
     int pos2 = request.find(' ', pos1) + 1;
     int pos3 = request.find('\n', pos2);
-    client.crlf = request.find("\r\n\r\n");
+    
+    client.setCrLf(request.find("\r\n\r\n"));
+    // client.crlf = request.find("\r\n\r\n");
 
-    headerString = request.substr(request.find("\r\n") + 2, client.crlf - request.find("\r\n") - 2);
+    headerString = request.substr(request.find("\r\n") + 2, client.getCrLf() - request.find("\r\n") - 2);
     size_t posHeader = 2;
     int pos = headerString.find("\n", posHeader);
     int start = 0;
@@ -59,9 +62,10 @@ int getHeaders(const std::string& request, Client& client)
             temp = std::tolower(headers[i].first[j]);
             key.append(temp);
         }
-        client.headers_map[key] = headers[i].second;
+        headers_map[key] = headers[i].second;
         key.clear();
     }
+    client.setHeadersMap(headers_map);
     
     method = request.substr(0, pos1 - 1);
     uri = request.substr(pos1, pos2 - pos1 - 1);
@@ -73,33 +77,33 @@ int getHeaders(const std::string& request, Client& client)
     client.addStartLine(version);
 
     client.setHeaders(headers);
-    client.headersParsed++;
+    client.setisHeaderParser();
     return 1;
 }
 
-std::string parseRequest(Client& client, const std::string &request)
-{
-    try
-    {
-        std::string body;
+// std::string parseRequest(Client& client, const std::string &request)
+// {
+//     try
+//     {
+//         std::string body;
         
-        if (!client.headersParsed)
-        {
-            getHeaders(request, client);
-            client.headersParsed = true;
-            body = request.substr(client.crlf + 4);
-        }
+//         if (!client.headersParsed)
+//         {
+//             getHeaders(request, client);
+//             client.headersParsed = true;
+//             body = request.substr(client.crlf + 4);
+//         }
 
-        if (body.size() > 0)
-            client.body = body;
+//         if (body.size() > 0)
+//             client.body = body;
 
-    }
-    catch (const std::exception &e)
-    {
-        std::cerr << e.what() << std::endl;
-    }
-    return "";
-}
+//     }
+//     catch (const std::exception &e)
+//     {
+//         std::cerr << e.what() << std::endl;
+//     }
+//     return "";
+// }
 
 std::string getFileExtension(const std::string &filePath)
 {

@@ -6,7 +6,7 @@
 /*   By: shmimi <shmimi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/21 15:10:14 by shmimi            #+#    #+#             */
-/*   Updated: 2024/06/09 02:25:16 by shmimi           ###   ########.fr       */
+/*   Updated: 2024/06/09 15:41:27 by shmimi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -58,13 +58,13 @@ std::string getRequest(Client &client)
 
     client.bytesRead.append(request);
 
-    if (!client.headersParsed)
+    if (!client.getIsHeaderParser())
     {
         // std::cout << "Parsing headers for client " << client.getClientFd() << std::endl;
         if (getHeaders(client.bytesRead, client))
         {
             // std::cout << "Headers parsed for client " << client.getClientFd() << std::endl;
-            client.headersParsed = true;
+            client.setisHeaderParser();
         }
         std::map<std::string, std::string> headers = client.getHeadersmap();
         size_t portIndex = headers["host"].erase(0, 1).find(":");
@@ -72,7 +72,7 @@ std::string getRequest(Client &client)
         client.setPort(port);
     }
 
-    if (client.headersParsed)
+    if (client.getIsHeaderParser())
     {
         std::map<std::string, std::string> headers = client.getHeadersmap();
         if (headers.find("content-length") != headers.end())
@@ -165,7 +165,7 @@ int main(int ac, char **av)
                             {
                                 request = getRequest(clients[k]);
                                 std::map<std::string, std::string> headers = clients[k].getHeadersmap();
-                                if (clients[k].headersParsed)
+                                if (clients[k].getIsHeaderParser())
                                 {
                                     if (clients[k].getMethod() == "POST")
                                     {

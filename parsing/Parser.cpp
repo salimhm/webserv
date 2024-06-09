@@ -6,7 +6,7 @@
 /*   By: shmimi <shmimi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/16 22:50:03 by shmimi            #+#    #+#             */
-/*   Updated: 2024/06/09 01:35:39 by shmimi           ###   ########.fr       */
+/*   Updated: 2024/06/09 15:28:09 by shmimi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -247,9 +247,11 @@ void Parser::checkLocationsDuplicates(const std::vector<std::string>& keys)
 {
     int root = 0;
     int index = 0;
+    int autoIndex = 0;
     int allowedMethods = 0;
     int uploadDir = 0;
     int redirect = 0;
+    int clientMaxBodySize = 0;
     for (size_t i = 0; i < keys.size(); i++)
     {
         if (keys[i] == "listen")
@@ -262,14 +264,18 @@ void Parser::checkLocationsDuplicates(const std::vector<std::string>& keys)
             root++;
         if (keys[i] == "index")
             index++;
+        if (keys[i] == "autoindex")
+            autoIndex++;
         if (keys[i] == "allowed_methods")
             allowedMethods++;
         if (keys[i] == "upload_dir")
             uploadDir++;
         if (keys[i] == "redirect")
             redirect++;
+        if (keys[i] == "client_max_body_size")
+            clientMaxBodySize++;
     }
-    if (root > 1 || index > 1 || allowedMethods > 1 || uploadDir > 1 || redirect > 1)
+    if (root > 1 || index > 1 || autoIndex > 1 || allowedMethods > 1 || uploadDir > 1 || redirect > 1 || clientMaxBodySize > 1)
         throw std::runtime_error("Syntax error!");
 }
 
