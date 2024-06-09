@@ -2,9 +2,10 @@ server :
 		listen  5000 8989 7070
 		host 127.0.0.1      
 		server_name   hh   
+		root ./assets/html/site-1
 		allowed_methods GET DELETE POST
 		autoindex on
-		client_max_body_size 10000000
+		client_max_body_size 15510120000
   server.location   /hehe/ :
 		redirect /hehe http://10.11.5.5:8080
 		allowed_methods POST
@@ -37,4 +38,3 @@ server:
 		listen  9000
 		host 127.0.0.1
 		allowed_methods GET
-		root .

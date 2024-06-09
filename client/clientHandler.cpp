@@ -6,7 +6,7 @@
 /*   By: shmimi <shmimi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/01 02:07:06 by shmimi            #+#    #+#             */
-/*   Updated: 2024/06/09 18:13:36 by shmimi           ###   ########.fr       */
+/*   Updated: 2024/06/09 19:10:37 by shmimi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -344,7 +344,7 @@ std::string handleRequest(Client &client, Config &config, std::string &request)
         {
             std::cout << "root  => " << root << "  " << index << std::endl;
             // std::cout << "redirect " << config.getRedirect()[0] << "  " << config.getRedirect()[1] << std::endl;
-            if (root == "" && index == "")
+            if (root == "" && index == "" && client.getUri() == "/")
             {
                 generateResponse(client, config, response, def.generateIndexPage(), "text/html", "200", "OK", 1);
                 return getResponse(response);
@@ -463,46 +463,58 @@ std::string handleRequest(Client &client, Config &config, std::string &request)
     }
     else if (client.getMethod() == "POST" && allowedMethods["POST"])
     {
-        std::string responseCgi = cgi.postCgi(client, config);
-        if (responseCgi == "502")
+        if (client.getUri().find("/CGIscripts/upload.py") != std::string::npos || client.getUri().find("/CGIscripts/post.py") != std::string::npos)
         {
-            if (isErrorPage.find("502") != isErrorPage.end())
+            std::string responseCgi = cgi.postCgi(client, config);
+            if (responseCgi == "502")
             {
-                generateResponse(client, config, response, isErrorPage["502"], "text/html", "502", "Bad Gateway", 0);
+                if (isErrorPage.find("502") != isErrorPage.end())
+                {
+                    generateResponse(client, config, response, isErrorPage["502"], "text/html", "502", "Bad Gateway", 0);
+                    return getResponse(response);
+                }
+                generateResponse(client, config, response, def.generateErrorPage("502"), "text/html", "502", "Bad Gateway", 1);
                 return getResponse(response);
             }
-            generateResponse(client, config, response, def.generateErrorPage("502"), "text/html", "502", "Bad Gateway", 1);
-            return getResponse(response);
-        }
-        else if (responseCgi == "504")
-        {
-            if (isErrorPage.find("504") != isErrorPage.end())
+            else if (responseCgi == "504")
             {
-                generateResponse(client, config, response, isErrorPage["504"], "text/html", "504", "Gateway Timeout", 0);
+            std::cout << "here  " << responseCgi << std::endl;
+                if (isErrorPage.find("504") != isErrorPage.end())
+                {
+                    generateResponse(client, config, response, isErrorPage["504"], "text/html", "504", "Gateway Timeout", 0);
+                    return getResponse(response);
+                }
+                generateResponse(client, config, response, def.generateErrorPage("504"), "text/html", "504", "Gateway Timeout", 1);
                 return getResponse(response);
             }
-            generateResponse(client, config, response, def.generateErrorPage("504"), "text/html", "504", "Gateway Timeout", 1);
-            // std::cout << getResponse(response) << std::endl;
-            return getResponse(response);
-        }
-        else if (responseCgi == "413")
-        {
-            std::cout << "CGI\n";
-            if (isErrorPage.find("413") != isErrorPage.end())
+            else if (responseCgi == "413")
             {
-                generateResponse(client, config, response, isErrorPage["413"], "text/html", "413", "Payload Too Large", 0);
+                std::cout << "CGI\n";
+                if (isErrorPage.find("413") != isErrorPage.end())
+                {
+                    generateResponse(client, config, response, isErrorPage["413"], "text/html", "413", "Payload Too Large", 0);
+                    return getResponse(response);
+                }
+                generateResponse(client, config, response, def.generateErrorPage("413"), "text/html", "413", "Payload Too Large", 1);
+                // std::cout << getResponse(response) << std::endl;
                 return getResponse(response);
             }
-            generateResponse(client, config, response, def.generateErrorPage("413"), "text/html", "413", "Payload Too Large", 1);
-            // std::cout << getResponse(response) << std::endl;
-            return getResponse(response);
+            else
+            {
+                generateResponse(client, config, response, "./responsepostCGI.html", "text/html", "200", "OK", 0);
+                // std::cout << "Response => " << getResponse(response) << std::endl;
+                return getResponse(response);
+            }
         }
         else
         {
-            generateResponse(client, config, response, "./responsepostCGI.html", "text/html", "200", "OK", 0);
-            // std::cout << "Response => " << getResponse(response) << std::endl;
+            if (isErrorPage.find("405") != isErrorPage.end())
+            {
+                generateResponse(client, config, response, isErrorPage["405"], "text/html", "405", "Method Not Allowed", 0);
+                return getResponse(response);
+            }
+            generateResponse(client, config, response, def.generateErrorPage("405"), "text/html", "405", "Method Not Allowed", 1);
             return getResponse(response);
-            
         }
     }
     else

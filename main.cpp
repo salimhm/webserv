@@ -6,7 +6,7 @@
 /*   By: shmimi <shmimi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/21 15:10:14 by shmimi            #+#    #+#             */
-/*   Updated: 2024/06/09 18:05:27 by shmimi           ###   ########.fr       */
+/*   Updated: 2024/06/09 19:00:00 by shmimi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -145,6 +145,7 @@ int main(int ac, char **av)
                                 close(clients[k].getClientFd());
                                 clients.erase(clients.begin() + k);
                                 pollfds.erase(pollfds.begin() + j);
+                                break;
                             }
                             std::map<std::string, std::string> headers = clients[k].getHeadersmap();
                             if (clients[k].getIsHeaderParser())

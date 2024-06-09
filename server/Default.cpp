@@ -46,7 +46,7 @@ const std::string Default::generateIndexPage()
             </head>\
             <body>\
             <h1>Welcome to Nkhinx!</h1>\
-            <p>If you see this page, the nginx web server is successfully installed and\
+            <p>If you see this page, the Nkhinx web server is successfully installed and\
             working. Further configuration is required.</p>\
             <p><em>Thank you for using Nkhinx.</em></p>\
         </body>\

@@ -6,7 +6,7 @@
 /*   By: shmimi <shmimi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/16 22:50:03 by shmimi            #+#    #+#             */
-/*   Updated: 2024/06/09 15:28:09 by shmimi           ###   ########.fr       */
+/*   Updated: 2024/06/09 19:12:51 by shmimi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -150,6 +150,14 @@ int Parser::checkSyntax(std::vector<std::pair<std::string, std::vector<std::stri
         {
             if (directives[i].second.size() < 1 || directives[i].second.size() > 1)
                 return 1;
+            else
+            {
+                for (size_t j = 0; j < directives[i].second[0].size(); j++)
+                {
+                    if (!isdigit(directives[i].second[0][j]))
+                        return 1;
+                }
+            }
         }
         if (directives[i].first == "root")
         {
