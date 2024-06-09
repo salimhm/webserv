@@ -6,7 +6,7 @@
 /*   By: shmimi <shmimi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/21 15:10:14 by shmimi            #+#    #+#             */
-/*   Updated: 2024/06/09 00:34:51 by shmimi           ###   ########.fr       */
+/*   Updated: 2024/06/09 02:25:16 by shmimi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -66,6 +66,10 @@ std::string getRequest(Client &client)
             // std::cout << "Headers parsed for client " << client.getClientFd() << std::endl;
             client.headersParsed = true;
         }
+        std::map<std::string, std::string> headers = client.getHeadersmap();
+        size_t portIndex = headers["host"].erase(0, 1).find(":");
+        std::string port = headers["host"].erase(0, 1).substr(portIndex);
+        client.setPort(port);
     }
 
     if (client.headersParsed)
@@ -108,7 +112,7 @@ int handleNewConnection(Server &server, std::vector<pollfd> &pollfds, std::vecto
         perror("accept");
         exit(1); // Throw
     }
-    std::cout << "clientSocket: " << clientSocket << std::endl;
+    // std::cout << "clientSocket: " << clientSocket << std::endl;
     pollfd socket = server.addClient(clientSocket, 0);
     pollfds.push_back(socket);
     Client client(clientSocket, filePath);
@@ -163,7 +167,7 @@ int main(int ac, char **av)
                                 std::map<std::string, std::string> headers = clients[k].getHeadersmap();
                                 if (clients[k].headersParsed)
                                 {
-                                    if (clients[k].startLine[0] == "POST")
+                                    if (clients[k].getMethod() == "POST")
                                     {
                                         size_t contentLength = std::stoul(headers["content-length"]);
                                         if (clients[k].body.size() >= contentLength)
@@ -174,7 +178,7 @@ int main(int ac, char **av)
                                         else
                                             continue;
                                     }
-                                    else if (clients[k].startLine[0] == "GET")
+                                    else if (clients[k].getMethod() == "GET")
                                     {
                                         response = handleRequest(clients[k], config, request);
                                     }
@@ -193,19 +197,19 @@ int main(int ac, char **av)
                                 // std::cout << "Total Bytes => " << clients[k].getTotalBytes() << "  " << " BYTES TO SEND for " << k << "  " << clients[k].getBytesToSend() << std::endl;
                                 // std::cout << "FROM Server  " << response.c_str() + clients[k].getBytesSent() << std::endl;
                                 bytes = send(clients[k].getClientFd(), response.c_str() + clients[k].getBytesSent(), clients[k].getBytesToSend(), 0);
-                                std::cout << "sdcdscdscs  " << bytes << std::endl;
+                                // std::cout << "sdcdscdscs  " << bytes << std::endl;
                                 clients[k].setBytesSent(clients[k].getBytesSent() + bytes);
                                 clients[k].setBytesToSend(clients[k].getBytesToSend() - bytes);
                                 if (bytes < 0)
                                 {
-                                    std::cerr << "Error sending data for " << k << "  " << clients[k].getRequest()[1] << std::endl;
+                                    // std::cerr << "Error sending data for " << k << "  " << clients[k].getRequest()[1] << std::endl;
                                     close(clients[k].getClientFd());
                                     clients.erase(clients.begin() + k);
                                     pollfds.erase(pollfds.begin() + j);
                                 }
                                 if (bytes == 0)
                                 {
-                                    std::cout << "Closing connection for " << k << std::endl;
+                                    // std::cout << "Closing connection for " << k << std::endl;
                                     close(clients[k].getClientFd());
                                     clients.erase(clients.begin() + k);
                                     pollfds.erase(pollfds.begin() + j);

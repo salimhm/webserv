@@ -6,7 +6,7 @@
 /*   By: shmimi <shmimi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/31 02:36:33 by shmimi            #+#    #+#             */
-/*   Updated: 2024/06/09 00:34:29 by shmimi           ###   ########.fr       */
+/*   Updated: 2024/06/09 02:27:41 by shmimi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,12 +42,12 @@ class Client: public Config
         int _bytesToSend;
         int _bytesSent;
 
+        std::vector<std::string> startLine;
+        std::vector< std::pair<std::string, std::string> > headers;
 
 
     public:
 
-        std::vector<std::string> startLine;
-        std::vector< std::pair<std::string, std::string> > headers;
         std::map <std::string, std::string> headers_map;
         std::string body;
         std::string port;
@@ -74,7 +74,7 @@ class Client: public Config
         const int &getBytesToSend();
         const int &getBytesSent();
         /********** Setters *************/
-        void setPort();
+        void setPort(const std::string& port);
         void setMethod(const std::string &method);
         void setUri(const std::string &uri);
         void setVersion(const std::string &version);
@@ -84,6 +84,7 @@ class Client: public Config
         void setRemainingBytes(const int &remainingBytes);
         void setBytesToSend(const int& bytesToSend);
         void setBytesSent(const int& bytesSent);
-        // void setRequest(const std::string &request);
 
+        void addStartLine(const std::string& line);
+        void setHeaders(const std::vector< std::pair<std::string, std::string> >& headers);
 };

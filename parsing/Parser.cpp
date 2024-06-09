@@ -6,7 +6,7 @@
 /*   By: shmimi <shmimi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/16 22:50:03 by shmimi            #+#    #+#             */
-/*   Updated: 2024/06/06 19:16:07 by shmimi           ###   ########.fr       */
+/*   Updated: 2024/06/09 01:35:39 by shmimi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -361,7 +361,7 @@ void Parser::parse()
             servers.push_back(server);
         }
     }
-    std::cout << "SIZE " << servers.size() << std::endl;
+    // std::cout << "SIZE " << servers.size() << std::endl;
     if (servers.size() == 0)
         throw std::runtime_error("Syntax error!");
     for (size_t i = 0; i < servers.size(); i++)

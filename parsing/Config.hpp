@@ -6,7 +6,7 @@
 /*   By: shmimi <shmimi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/23 22:15:53 by shmimi            #+#    #+#             */
-/*   Updated: 2024/06/06 20:03:18 by shmimi           ###   ########.fr       */
+/*   Updated: 2024/06/09 02:06:58 by shmimi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,6 +41,7 @@ class Config: public Mime, public Parser
         std::vector<std::pair<std::string, std::pair<std::string, std::vector<std::string> > > > locations;
         std::vector<std::vector<std::pair<std::string, std::vector<std::string> > > > servers;
         
+        std::map<int, std::string> portMap;
     public:
         Config();
         Config(const std::string& file);
@@ -64,6 +65,8 @@ class Config: public Mime, public Parser
         void setRedirect(int isLocation, const std::string &uri, const std::string& port);
         void defineErrorPage(int isLocation, const std::string &uri, const std::string& port);
         
+        void setPortMap(int port);
+
         /************ GETTERS ************/
         const std::vector<int> getPort();
         const std::string getHost(int port);
@@ -77,6 +80,8 @@ class Config: public Mime, public Parser
         const std::map<std::string, int> getAllowedMethods();
         const std::vector<std::string> getRedirect();
         
+        std::map<int, std::string> getPortMap();
+
         std::string getErrorPage(const std::string& errorCode, const std::string& uri, int location);
         std::string getErrorCode();
         const std::map<std::string, std::string> getIsErrorPage();

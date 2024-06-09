@@ -6,7 +6,7 @@
 /*   By: shmimi <shmimi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/23 22:19:25 by shmimi            #+#    #+#             */
-/*   Updated: 2024/06/08 23:15:26 by shmimi           ###   ########.fr       */
+/*   Updated: 2024/06/09 02:07:07 by shmimi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -61,12 +61,13 @@ size_t Config::getPortIndex(const std::string &port)
             {
                 if (this->servers[i][j].second[p] == port)
                 {
-                    // std::cout << "???????n >>" << i << " " << j << std::endl;
+                // std::cout << "this->servers[i][j].second[p] " << this->servers[i][j].second[p] << "   " << port << std::endl;
                     return i;
                 }
             }
         }
     }
+    // std::cout << "?????????????????? " << port << std::endl;
     return 0;
 }
 
@@ -75,6 +76,7 @@ void Config::setRedirect(int isLocation, const std::string &uri, const std::stri
     this->redirect.clear();
     
     size_t portIndex = getPortIndex(port);
+    std::cout << "port>>" << port << std::endl;
     if (!isLocation)
     {
         for (size_t j = 0; j < this->servers[portIndex].size(); j++)
@@ -251,7 +253,7 @@ void Config::setRoot(int isLocation, const std::string &uri, const std::string& 
     this->root.clear();
     
     size_t portIndex = getPortIndex(port);
-    // std::cout << "port Index " << portIndex << std::endl;
+    std::cout << "port Index " << portIndex << std::endl;
     // std::cout << "isLocation " << isLocation << "    " << uri << " isLocation\n";
     if (!isLocation)
     {
@@ -694,6 +696,32 @@ const std::string Config::getHost(int port)
     }
     
     return "";
+}
+
+void Config::setPortMap(int port)
+{
+    std::stringstream ss;
+    ss << port;
+    std::string portStr = ss.str();
+    for (size_t i = 0; i < this->servers.size(); i++)
+    {
+        for (size_t j = 0; j < this->servers[i].size(); j++)
+        {
+            for (size_t p = 0; p < this->servers[i][j].second.size(); p++)
+            {
+                if (this->servers[i][j].second[p] == portStr)
+                {
+                    this->portMap[port] = i;
+                    return;
+                }
+            }
+        }
+    }
+}
+
+std::map<int, std::string> Config::getPortMap()
+{
+    return this->portMap;
 }
 
 const std::string Config::getRoot()

@@ -6,7 +6,7 @@
 /*   By: shmimi <shmimi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/04/25 00:04:21 by shmimi            #+#    #+#             */
-/*   Updated: 2024/06/08 21:02:19 by shmimi           ###   ########.fr       */
+/*   Updated: 2024/06/09 02:28:24 by shmimi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,6 +18,8 @@ Client::Client(const int clientFd, const std::string& filePath) : Config(filePat
     _bytesToSend = 0;
     _bytesSent = 0;
     headersParsed = 0;
+    
+
 }
 
 // ******************************* Getters *******************************
@@ -33,7 +35,7 @@ const std::vector<std::string>& Client::getRequest() const
 
 const std::vector< std::pair<std::string, std::string> >& Client::getHeaders() const
 {
-    return headers;
+    return this->headers;
 }
 
 const std::map<std::string, std::string>& Client::getHeadersmap() const
@@ -97,11 +99,6 @@ void Client::setVersion(const std::string &version)
     this->_version = version;
 }
 
-// void Client::setRequest(const std::string& request)
-// {
-//     this->request = request;
-// }
-
 void Client::setTotalBytes(const int &totalBytes)
 {
     this->_totalBytes = totalBytes;
@@ -120,4 +117,19 @@ void Client::setBytesSent(const int& bytesSent)
 void Client::setBody(const std::string& body)
 {
     this->body = body;
+}
+
+void Client::setPort(const std::string& port)
+{
+    this->port = port;
+}
+
+void Client::addStartLine(const std::string& line)
+{
+    this->startLine.push_back(line);
+}
+
+void Client::setHeaders(const std::vector< std::pair<std::string, std::string> >& headers)
+{
+    this->headers = headers;
 }

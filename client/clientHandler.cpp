@@ -6,7 +6,7 @@
 /*   By: shmimi <shmimi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/01 02:07:06 by shmimi            #+#    #+#             */
-/*   Updated: 2024/06/09 01:00:43 by shmimi           ###   ########.fr       */
+/*   Updated: 2024/06/09 02:28:48 by shmimi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -68,11 +68,11 @@ int getHeaders(const std::string& request, Client& client)
     uri = normalizeUrl(uri);
     version = request.substr(pos2, pos3 - pos2 - 1);
 
-    client.startLine.push_back(method);
-    client.startLine.push_back(uri);
-    client.startLine.push_back(version);
+    client.addStartLine(method);
+    client.addStartLine(uri);
+    client.addStartLine(version);
 
-    client.headers = headers;
+    client.setHeaders(headers);
     client.headersParsed++;
     return 1;
 }
@@ -273,7 +273,7 @@ void setClientConfig(Client &client, Config &config)
     client.setVersion(client.getVersion());
     if (config.isLocation(client.getUri(), client.getPort()))
     {
-		// std::cout << "Location found\n";
+		std::cout << "Location found\n";
         config.setRoot(1, client.getUri(), client.getPort());
         config.defineErrorPage(1, client.getUri(), client.getPort());
         config.setServerName(1, client.getUri(), client.getPort());
@@ -287,7 +287,7 @@ void setClientConfig(Client &client, Config &config)
     }
     else
     {
-		// std::cout << "Location NOT found\n";
+		std::cout << "Location NOT found\n";
         config.setRoot(0, "", client.getPort());
         config.defineErrorPage(0, "", client.getPort());
         config.setServerName(0, "", client.getPort());
@@ -307,7 +307,6 @@ std::string handleRequest(Client &client, Config &config, std::string &request)
     struct stat fileStat;
     Default def;
 
-    // int fdfile = open("/tmp/tmp.txt", O_CREAT | O_RDWR, 0777);
     Cgi cgi = Cgi(request);
     
     setClientConfig(client, config);
@@ -319,11 +318,6 @@ std::string handleRequest(Client &client, Config &config, std::string &request)
     std::string filePathCpy = filePath;
 
     std::map<std::string, std::string> isErrorPage = config.getIsErrorPage();
-    // for (std::map<std::string, int>::iterator it = isErrorPage.begin(); it != isErrorPage.end(); it++)
-    // {
-        
-    // }
-
     
 
     // std::cout << "Port => " << client.getPort() << std::endl;
@@ -332,22 +326,8 @@ std::string handleRequest(Client &client, Config &config, std::string &request)
 	// std::cout << "index => " << index << std::endl;
 	// std::cout << "uploadDir => " << config.getUploadDir() << std::endl;
 	// std::cout << "serverName => " << config.getServerName() << std::endl;
-    // if (config.getRedirect().size())
-    //     std::cout << "Redirect from => " << config.getRedirect()[0] << " Redirect to => " << config.getRedirect()[1] << std::endl;
-    // std::map<std::string, std::string> headers = client.getHeadersmap();
-    // std::cout << "Printing Headers\n";
-    // for (std::map<std::string, std::string>::iterator it = headers.begin(); it != headers.end(); it++)
-    // {
-    //     std::cout << it->first << " => " << it->second << std::endl;
-    // }
-    
-	// std::cout << "AllowedMethods => " << allowedMethods.size() << std::endl;
-    // for (std::map<std::string, int>::iterator it = allowedMethods.begin(); it != allowedMethods.end(); it++)
-    // {
-    //     std::cout << it->first << " => " << it->second << std::endl;
-    // }
+    // std::cout << "URI " << client.getUri() << std::endl;
 
-    // std::cout << "Method => " << client.getMethod() << std::endl;
     if (client.getMethod() == "GET" && allowedMethods["GET"])
     {
         if (client.getUri().find("/CGIscripts/get.py") != std::string::npos)
