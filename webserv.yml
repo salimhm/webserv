@@ -1,15 +1,12 @@
 server :
 		listen  5000 8989 7070
 		host 127.0.0.1      
-		server_name   hh     
-		root ./assets/html/site-1
-		index    index.html
-		client_max_body_size 100000000
-		allowed_methods GET POST DELETE 
+		server_name   hh   
+		allowed_methods GET DELETE POST
 		autoindex on
-		error_page 404 ./assets/error/404.html
+		client_max_body_size 10000000
   server.location   /hehe/ :
-		redirect /hehe /lol
+		redirect /hehe http://10.11.5.5:8080
 		allowed_methods POST
 		error_page 404 ./assets/error/404.html
 		autoindex off
@@ -17,7 +14,7 @@ server :
 		error_page 500 ./assets/error/500.html
   server.location /wtf/ds//df :
 		error_page 405 ./assets/error/405.html
-		root /local/path/2
+		root .
 		client_max_body_size 600
 		autoindex off
 server :
@@ -36,3 +33,8 @@ server :
 		error_page 404 ./assets/error/405.html
 		root /local/path/2
 		autoindex off
+server:
+		listen  9000
+		host 127.0.0.1
+		allowed_methods GET
+		root .

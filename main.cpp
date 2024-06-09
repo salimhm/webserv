@@ -6,7 +6,7 @@
 /*   By: shmimi <shmimi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/21 15:10:14 by shmimi            #+#    #+#             */
-/*   Updated: 2024/06/09 16:13:38 by shmimi           ###   ########.fr       */
+/*   Updated: 2024/06/09 18:05:27 by shmimi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,9 +30,7 @@ std::vector<Server> setupServer(Config &config, std::vector<pollfd> &pollfds)
         pollfds.push_back(clienSocket);
     }
     for (size_t i = 0; i < config.getPort().size(); i++)
-    {
         std::cout << "Listening on " << config.getHost(config.getPort()[i]) << ":" << config.getPort()[i] << std::endl;
-    }
     return servers;
 }
 
@@ -41,31 +39,18 @@ std::string getRequest(Client &client)
     char buffer[10024] = {0};
     int data = recv(client.getClientFd(), buffer, sizeof(buffer), 0);
     if (data < 0)
-    {
-        perror("recv");
         return "";
-    }
     if (data == 0)
-    {
-        // close(client.getClientFd());
         return "";
-    }
 
     std::string request(buffer, data);
-    // std::cout << "*****************\n";
-    // std::cout << "Request: " << request << std::endl;
-    // std::cout << "*****************\n";
 
     client.setBytesRead(request);
 
     if (!client.getIsHeaderParser())
     {
-        // std::cout << "Parsing headers for client " << client.getClientFd() << std::endl;
         if (getHeaders(client.getBytesRead(), client))
-        {
-            // std::cout << "Headers parsed for client " << client.getClientFd() << std::endl;
             client.setisHeaderParser();
-        }
         std::map<std::string, std::string> headers = client.getHeadersmap();
         size_t portIndex = headers["host"].erase(0, 1).find(":");
         std::string port = headers["host"].erase(0, 1).substr(portIndex);
@@ -98,7 +83,6 @@ std::string getRequest(Client &client)
         }
     }
     client.setAllRequest(request);
-    // client.allRequest.append(request);
     return client.getBody();
 }
 
@@ -106,11 +90,7 @@ int handleNewConnection(Server &server, std::vector<pollfd> &pollfds, std::vecto
 {
     int clientSocket = accept(server.getSockfd(), (struct sockaddr *)&server.getAddr(), &server.getAddrlen());
     if (clientSocket < 0)
-    {
-        perror("accept");
-        exit(1); // Throw
-    }
-    // std::cout << "clientSocket: " << clientSocket << std::endl;
+        throw std::runtime_error("Error accepting connection");
     pollfd socket = server.addClient(clientSocket, 0);
     pollfds.push_back(socket);
     Client client(clientSocket, filePath);
@@ -123,108 +103,101 @@ int main(int ac, char **av)
     (void)av;
     (void)ac;
 
+    try
     {
-        try
+        std::string filePath = "webserv.yml";
+        Config config(filePath);
+        config.getAutoIndex();
+
+        std::vector<pollfd> pollfds;
+        std::vector<Client> clients;
+        std::vector<Server> servers = setupServer(config, pollfds);
+
+        int clientSocket;
+        std::string request;
+
+        std::string response;
+        ssize_t bytes;
+        std::map<std::string, std::string> headers;
+        while (1)
         {
-            std::string filePath = "webserv.yml";
-            Config config(filePath);
-            config.getAutoIndex();
-
-            std::vector<pollfd> pollfds;
-            std::vector<Client> clients;
-            std::vector<Server> servers = setupServer(config, pollfds);
-
-            int clientSocket;
-            std::string request;
-
-            std::string response;
-            ssize_t bytes;
-            std::map<std::string, std::string> headers;
-            while (1)
+            try
             {
-                try
+                for (size_t j = 0; j < pollfds.size(); j++) // Loop through all the servers (ports)
                 {
-                    for (size_t j = 0; j < pollfds.size(); j++) // Loop through all the servers (ports)
+                    int ready = poll(pollfds.data(), pollfds.size(), -1);
+                    if (ready < 0)
                     {
-                        int ready = poll(pollfds.data(), pollfds.size(), -1);
-                        if (ready < 0)
+                        throw std::runtime_error("Error polling");
+                    }
+                    for (size_t i = 0; i < servers.size(); i++)
+                    {
+                        if (pollfds[j].fd == servers[i].getSockfd() && pollfds[j].revents & POLLIN)
+                            clientSocket = handleNewConnection(servers[i], pollfds, clients, filePath);
+                    }
+                    for (size_t k = 0; k < clients.size(); k++)
+                    {
+                        if (pollfds[j].fd == clients[k].getClientFd() && pollfds[j].revents & POLLIN)
                         {
-                            perror("poll");
-                            exit(1);
-                        }
-                        for (size_t i = 0; i < servers.size(); i++)
-                        {
-                            if (pollfds[j].fd == servers[i].getSockfd() && pollfds[j].revents & POLLIN)
-                                clientSocket = handleNewConnection(servers[i], pollfds, clients, filePath);
-                        }
-                        for (size_t k = 0; k < clients.size(); k++)
-                        {
-                            if (pollfds[j].fd == clients[k].getClientFd() && pollfds[j].revents & POLLIN)
+                            request = getRequest(clients[k]);
+                            if (request.empty())
                             {
-                                request = getRequest(clients[k]);
-                                std::map<std::string, std::string> headers = clients[k].getHeadersmap();
-                                if (clients[k].getIsHeaderParser())
-                                {
-                                    if (clients[k].getMethod() == "POST")
-                                    {
-                                        size_t contentLength = std::stoul(headers["content-length"]);
-                                        if (clients[k].getBody().size() >= contentLength)
-                                        {
-                                            // std::cout << clients[k].body << std::endl;
-                                            response = handleRequest(clients[k], config, request);
-                                        }
-                                        else
-                                            continue;
-                                    }
-                                    else if (clients[k].getMethod() == "GET")
-                                    {
-                                        response = handleRequest(clients[k], config, request);
-                                    }
-                                }
+                                close(clients[k].getClientFd());
+                                clients.erase(clients.begin() + k);
+                                pollfds.erase(pollfds.begin() + j);
                             }
-                            if (pollfds[j].fd == clients[k].getClientFd() && pollfds[j].revents & POLLOUT)
+                            std::map<std::string, std::string> headers = clients[k].getHeadersmap();
+                            if (clients[k].getIsHeaderParser())
                             {
-                                if (clients[k].getTotalBytes() == 0)
+                                if (clients[k].getMethod() == "POST")
                                 {
-                                    headers = clients[k].getHeadersmap();
-                                    // std::cout << "Content-Length " << headers["Content-Length"] << "  " << response.size() << std::endl;
-                                    // std::cout << clients[k].getH
-                                    clients[k].setTotalBytes(response.size());
-                                    clients[k].setBytesToSend(response.size() - clients[k].getBytesSent());
+                                    size_t contentLength = std::stoul(headers["content-length"]);
+                                    if (clients[k].getBody().size() >= contentLength)
+                                        response = handleRequest(clients[k], config, request);
+                                    else
+                                        continue;
                                 }
-                                // std::cout << "Total Bytes => " << clients[k].getTotalBytes() << "  " << " BYTES TO SEND for " << k << "  " << clients[k].getBytesToSend() << std::endl;
-                                // std::cout << "FROM Server  " << response.c_str() + clients[k].getBytesSent() << std::endl;
-                                bytes = send(clients[k].getClientFd(), response.c_str() + clients[k].getBytesSent(), clients[k].getBytesToSend(), 0);
-                                // std::cout << "sdcdscdscs  " << bytes << std::endl;
-                                clients[k].setBytesSent(clients[k].getBytesSent() + bytes);
-                                clients[k].setBytesToSend(clients[k].getBytesToSend() - bytes);
-                                if (bytes < 0)
-                                {
-                                    // std::cerr << "Error sending data for " << k << "  " << clients[k].getRequest()[1] << std::endl;
-                                    close(clients[k].getClientFd());
-                                    clients.erase(clients.begin() + k);
-                                    pollfds.erase(pollfds.begin() + j);
-                                }
-                                if (bytes == 0)
-                                {
-                                    // std::cout << "Closing connection for " << k << std::endl;
-                                    close(clients[k].getClientFd());
-                                    clients.erase(clients.begin() + k);
-                                    pollfds.erase(pollfds.begin() + j);
-                                }
+                                else if (clients[k].getMethod() == "GET")
+                                    response = handleRequest(clients[k], config, request);
+                                else if (clients[k].getMethod() == "DELETE")
+                                    response = handleRequest(clients[k], config, request);
+                            }
+                        }
+                        if (pollfds[j].fd == clients[k].getClientFd() && pollfds[j].revents & POLLOUT)
+                        {
+                            if (clients[k].getTotalBytes() == 0)
+                            {
+                                headers = clients[k].getHeadersmap();
+                                clients[k].setTotalBytes(response.size());
+                                clients[k].setBytesToSend(response.size() - clients[k].getBytesSent());
+                            }
+                            bytes = send(clients[k].getClientFd(), response.c_str() + clients[k].getBytesSent(), clients[k].getBytesToSend(), 0);
+                            clients[k].setBytesSent(clients[k].getBytesSent() + bytes);
+                            clients[k].setBytesToSend(clients[k].getBytesToSend() - bytes);
+                            if (bytes < 0)
+                            {
+                                close(clients[k].getClientFd());
+                                clients.erase(clients.begin() + k);
+                                pollfds.erase(pollfds.begin() + j);
+                            }
+                            if (bytes == 0)
+                            {
+                                close(clients[k].getClientFd());
+                                clients.erase(clients.begin() + k);
+                                pollfds.erase(pollfds.begin() + j);
                             }
                         }
                     }
                 }
-                catch (const std::exception &e)
-                {
-                    std::cerr << e.what() << std::endl;
-                }
+            }
+            catch (const std::exception &e)
+            {
+                std::cerr << e.what() << std::endl;
             }
         }
-        catch (const std::exception &e)
-        {
-            std::cerr << e.what() << std::endl;
-        }
+    }
+    catch (const std::exception &e)
+    {
+        std::cerr << e.what() << std::endl;
     }
 }

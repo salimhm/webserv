@@ -32,6 +32,28 @@ const std::string getErrorMessage(const std::string &errorCode)
     }
 }
 
+const std::string Default::generateIndexPage()
+{
+    std::string indexPage = "\
+    <html>\
+        <head>\
+            <title>Welcome to Nkhinx!</title>\
+            <style>\
+            html { color-scheme: light dark; }\
+            body { width: 35em; margin: 0 auto;\
+            font-family: Tahoma, Verdana, Arial, sans-serif; }\
+            </style>\
+            </head>\
+            <body>\
+            <h1>Welcome to Nkhinx!</h1>\
+            <p>If you see this page, the nginx web server is successfully installed and\
+            working. Further configuration is required.</p>\
+            <p><em>Thank you for using Nkhinx.</em></p>\
+        </body>\
+    </html>";
+    return indexPage;
+}
+
 const std::string Default::generateErrorPage(const std::string &errorCode)
 {
     std::string errorMsg = getErrorMessage(errorCode);

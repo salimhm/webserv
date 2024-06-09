@@ -6,7 +6,7 @@
 /*   By: shmimi <shmimi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/01 02:07:06 by shmimi            #+#    #+#             */
-/*   Updated: 2024/06/09 15:43:35 by shmimi           ###   ########.fr       */
+/*   Updated: 2024/06/09 18:13:36 by shmimi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -342,12 +342,19 @@ std::string handleRequest(Client &client, Config &config, std::string &request)
         }
         else
         {
+            std::cout << "root  => " << root << "  " << index << std::endl;
+            // std::cout << "redirect " << config.getRedirect()[0] << "  " << config.getRedirect()[1] << std::endl;
+            if (root == "" && index == "")
+            {
+                generateResponse(client, config, response, def.generateIndexPage(), "text/html", "200", "OK", 1);
+                return getResponse(response);
+            }
             if (stat(filePath.c_str(), &fileStat) == 0) // Check if file/directory exists
             {
                 if (S_ISDIR(fileStat.st_mode)) // Handle directories
                 {
                     filePathCpy = root + uri + "/" + index;
-                    if (access(filePathCpy.c_str(), F_OK) == 0) // File exists
+                    if (access(filePathCpy.c_str(), F_OK) == 0 && index != "") // File exists
                     {
                         if (access(filePathCpy.c_str(), R_OK) == 0) // File exists  + readable, serve it
                         {
