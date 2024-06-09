@@ -8,11 +8,10 @@ class Cgi
 {
     private:
     std::string request;
-    int filefd;
 
     public:
 
-    Cgi(int filefd, std::string& request);
+    Cgi(std::string& request);
     const std::string postCgi(Client& client, Config &config);
     void getCgi(Client& client);
 };

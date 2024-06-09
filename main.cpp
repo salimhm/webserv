@@ -6,7 +6,7 @@
 /*   By: shmimi <shmimi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/21 15:10:14 by shmimi            #+#    #+#             */
-/*   Updated: 2024/06/08 22:45:47 by shmimi           ###   ########.fr       */
+/*   Updated: 2024/06/09 00:34:51 by shmimi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,23 +38,32 @@ std::vector<Server> setupServer(Config &config, std::vector<pollfd> &pollfds)
 
 std::string getRequest(Client &client)
 {
-    char buffer[1024] = {0};
+    char buffer[10024] = {0};
     int data = recv(client.getClientFd(), buffer, sizeof(buffer), 0);
     if (data < 0)
     {
         perror("recv");
         return "";
     }
+    if (data == 0)
+    {
+        // close(client.getClientFd());
+        return "";
+    }
 
     std::string request(buffer, data);
+    // std::cout << "*****************\n";
+    // std::cout << "Request: " << request << std::endl;
+    // std::cout << "*****************\n";
+
     client.bytesRead.append(request);
 
     if (!client.headersParsed)
     {
-        std::cout << "Parsing headers for client " << client.getClientFd() << std::endl;
+        // std::cout << "Parsing headers for client " << client.getClientFd() << std::endl;
         if (getHeaders(client.bytesRead, client))
         {
-            std::cout << "Headers parsed for client " << client.getClientFd() << std::endl;
+            // std::cout << "Headers parsed for client " << client.getClientFd() << std::endl;
             client.headersParsed = true;
         }
     }
@@ -64,13 +73,14 @@ std::string getRequest(Client &client)
         std::map<std::string, std::string> headers = client.getHeadersmap();
         if (headers.find("content-length") != headers.end())
         {
+            
             size_t contentLength = std::stoul(headers["content-length"]);
             size_t remainingBody = contentLength - client.body.size();
             // std::cout << "Content-Length: " << contentLength << ", Bytes Read: " << client.bytesRead.size() << ", Remaining Body: " << remainingBody << ", Body Size: " << client.body.size() << std::endl;
 
             if (client.bytesRead.size() >= remainingBody)
             {
-                std::cout << "Full body received for client " << client.getClientFd() << "  " << client.body.size() << std::endl;
+                // std::cout << "Full body received for client " << " " << contentLength << "  " << client.getClientFd() << "  " << client.body.size() << "  " << remainingBody << std::endl;
                 client.body.append(client.bytesRead.substr(0, remainingBody));
                 client.bytesRead.erase(0, remainingBody);
             }
@@ -86,7 +96,7 @@ std::string getRequest(Client &client)
             client.bytesRead.clear();
         }
     }
-
+    client.allRequest.append(request);
     return client.body;
 }
 
@@ -158,6 +168,7 @@ int main(int ac, char **av)
                                         size_t contentLength = std::stoul(headers["content-length"]);
                                         if (clients[k].body.size() >= contentLength)
                                         {
+                                            // std::cout << clients[k].body << std::endl;
                                             response = handleRequest(clients[k], config, request);
                                         }
                                         else

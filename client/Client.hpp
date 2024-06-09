@@ -6,7 +6,7 @@
 /*   By: shmimi <shmimi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/31 02:36:33 by shmimi            #+#    #+#             */
-/*   Updated: 2024/06/08 21:02:14 by shmimi           ###   ########.fr       */
+/*   Updated: 2024/06/09 00:34:29 by shmimi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -55,6 +55,8 @@ class Client: public Config
         int crlf;
         std::string bytesRead;
         int headersParsed;
+        
+        std::string allRequest;
 
         Client(const int clientFd, const std::string& filePath);
         /********** Getters *************/

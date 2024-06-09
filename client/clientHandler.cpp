@@ -6,7 +6,7 @@
 /*   By: shmimi <shmimi@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/01 02:07:06 by shmimi            #+#    #+#             */
-/*   Updated: 2024/06/08 22:38:27 by shmimi           ###   ########.fr       */
+/*   Updated: 2024/06/09 01:00:43 by shmimi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -117,7 +117,7 @@ std::string readFile(std::string filePath)
     std::ifstream file(filePath);
     if (!file.is_open())
     {
-        std::cerr << "Error opening file" << std::endl;
+        std::cerr << "Error opening file " << filePath << std::endl;
         return "";
     }
     std::string line;
@@ -307,8 +307,8 @@ std::string handleRequest(Client &client, Config &config, std::string &request)
     struct stat fileStat;
     Default def;
 
-    int fdfile = open("/tmp/tmp.txt", O_CREAT | O_RDWR, 0777);
-    Cgi cgi = Cgi(fdfile, request);
+    // int fdfile = open("/tmp/tmp.txt", O_CREAT | O_RDWR, 0777);
+    Cgi cgi = Cgi(request);
     
     setClientConfig(client, config);
     std::map<std::string, int> allowedMethods = config.getAllowedMethods();
@@ -347,7 +347,7 @@ std::string handleRequest(Client &client, Config &config, std::string &request)
     //     std::cout << it->first << " => " << it->second << std::endl;
     // }
 
-    std::cout << "Method => " << client.getMethod() << std::endl;
+    // std::cout << "Method => " << client.getMethod() << std::endl;
     if (client.getMethod() == "GET" && allowedMethods["GET"])
     {
         if (client.getUri().find("/CGIscripts/get.py") != std::string::npos)
@@ -472,7 +472,8 @@ std::string handleRequest(Client &client, Config &config, std::string &request)
     }
     else if (client.getMethod() == "POST" && allowedMethods["POST"])
     {
-        if (cgi.postCgi(client, config) == "502")
+        std::string responseCgi = cgi.postCgi(client, config);
+        if (responseCgi == "502")
         {
             if (isErrorPage.find("502") != isErrorPage.end())
             {
@@ -482,7 +483,7 @@ std::string handleRequest(Client &client, Config &config, std::string &request)
             generateResponse(client, config, response, def.generateErrorPage("502"), "text/html", "502", "Bad Gateway", 1);
             return getResponse(response);
         }
-        else if (cgi.postCgi(client, config) == "504")
+        else if (responseCgi == "504")
         {
             if (isErrorPage.find("504") != isErrorPage.end())
             {
@@ -493,7 +494,7 @@ std::string handleRequest(Client &client, Config &config, std::string &request)
             // std::cout << getResponse(response) << std::endl;
             return getResponse(response);
         }
-        else if (cgi.postCgi(client, config) == "413")
+        else if (responseCgi == "413")
         {
             std::cout << "CGI\n";
             if (isErrorPage.find("413") != isErrorPage.end())
